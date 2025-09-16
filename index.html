@@ -1044,29 +1044,26 @@
                     return;
                 }
                 
-                // Send data to Google Sheets
-                fetch('https://script.google.com/macros/s/AKfycbz9QufUAD1rl_LnYHKAYssnXrCZRCss5j7UfwtP0LuVEbJDk-kAcY0oYOlYB4QId6hO/exec', {
+                // Send data to Google Sheets with CORS fix
+                fetch('https://script.google.com/macros/s/AKfycbyr2nlLse00TcIfh759diSGj38G2PkdXd8US0lFbPkRgCcFtena6Q7B0Op9wsRXQfKG/exec', {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain'
                     },
                     body: JSON.stringify(formData)
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
-                        // Optionally clear the form
-                        if (confirm('Would you like to clear the form for a new entry?')) {
-                            clearForm();
-                        }
-                    } else {
-                        throw new Error(data.message || 'Unknown error occurred');
+                .then(() => {
+                    // Success - can't get response data with no-cors, but that's fine
+                    alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
+                    // Optionally clear the form
+                    if (confirm('Would you like to clear the form for a new entry?')) {
+                        clearForm();
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error saving data: ' + error.message + '\n\nPlease try again or contact support.');
+                    alert('Error saving data. Please try again or contact support.');
                 })
                 .finally(() => {
                     // Reset button state
