@@ -1083,9 +1083,44 @@
             document.getElementById('quote_price').addEventListener('input', calculateProfitMargin);
             document.getElementById('cost').addEventListener('input', calculateProfitMargin);
 
-            // Form submission
+            // Form submission handler
             document.getElementById('opportunityForm').addEventListener('submit', function(e) {
                 e.preventDefault();
+                
+                // Show loading state
+                const submitBtn = document.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '💾 Saving...';
+                submitBtn.disabled = true;
+                
+                // Collect all form data
+                const formData = {
+                    timestamp: new Date().toISOString(),
+                    date: document.getElementById('date').value,
+                    project: document.getElementById('project').value,
+                    phase: document.getElementById('phase').value,
+                    deal_stage: document.getElementById('deal_stage').value,
+                    customer: document.getElementById('customer').value,
+                    builder: document.getElementById('builder').value,
+                    architect: document.getElementById('architect').value,
+                    po_number: document.getElementById('po_number').value,
+                    job_address: document.getElementById('job_address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    zip: document.getElementById('zip').value,
+                    neighborhood: document.getElementById('neighborhood').value,
+                    contact_name: document.getElementById('contact_name').value,
+                    contact_phone: document.getElementById('contact_phone').value,
+                    contact_email: document.getElementById('contact_email').value,
+                    product_quoted: document.getElementById('product_quoted').value,
+                    product_quoted_2: document.getElementById('product_quoted_2').value,
+                    quote_price: document.getElementById('quote_price').value,
+                    cost: document.getElementById('cost').value,
+                    profit: document.getElementById('profit').value,
+                    margin: document.getElementById('margin').value,
+                    phase_text: document.getElementById('phase').options[document.getElementById('phase').selectedIndex]?.text || '',
+                    deal_stage_text: document.getElementById('deal_stage').options[document.getElementById('deal_stage').selectedIndex]?.text || ''
+                };
                 
                 // Basic form validation
                 const requiredFields = document.querySelectorAll('[required]');
@@ -1100,11 +1135,42 @@
                     }
                 });
                 
-                if (allValid) {
-                    alert('Form submitted successfully! In a real application, this data would be saved to your database.');
-                } else {
+                if (!allValid) {
                     alert('Please fill in all required fields (marked with *)');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    return;
                 }
+                
+                // Send data to Google Sheets
+                fetch('https://script.google.com/macros/s/AKfycbxYGUztbXSTFL02YoJQlHVxWzirGVdVzLsRZ-Jk3jz1YWFb0Rch9XSJPLccNHbEU9wX/exec', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('✅ Customer opportunity saved successfully! Data has been added to your Google Sheet.');
+                        // Optionally clear the form
+                        if (confirm('Would you like to clear the form for a new entry?')) {
+                            clearForm();
+                        }
+                    } else {
+                        throw new Error(data.message || 'Unknown error occurred');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('❌ Error saving data: ' + error.message + '\n\nPlease try again or contact support.');
+                })
+                .finally(() => {
+                    // Reset button state
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
             });
         });
 
