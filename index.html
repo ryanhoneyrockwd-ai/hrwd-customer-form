@@ -541,16 +541,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Auto-generate project code based on form inputs
             function generateProjectCode() {
-                console.log('generateProjectCode called');
-                
                 const customer = document.getElementById('customer').value.trim();
                 const jobAddress = document.getElementById('job_address').value.trim();
                 const city = document.getElementById('city').value.trim();
                 
-                console.log('Values:', { customer, jobAddress, city });
-                
                 if (!customer || !jobAddress || !city) {
-                    console.log('Missing required fields for project code generation');
                     return; // Need minimum info to generate code
                 }
                 
@@ -576,21 +571,14 @@
                 // CITY3 = 3-letter city code
                 const cityCode = getCityCode(city);
                 
-                console.log('Parsed values:', { currentYear, customerCode, streetNumber, streetName, cityCode });
-                
                 if (customerCode && streetNumber && streetName && cityCode) {
                     const projectCode = `${currentYear}-${customerCode}-${streetNumber}-${streetName}-${cityCode}`;
                     document.getElementById('project').value = projectCode;
-                    console.log('Generated project code:', projectCode);
-                } else {
-                    console.log('Could not generate project code - missing components');
                 }
             }
 
             // Normalize street name to abbreviated format
             function normalizeStreetName(streetName) {
-                console.log('Normalizing street name:', streetName);
-                
                 // Street type abbreviations
                 const streetAbbreviations = {
                     'street': 'ST',
@@ -619,8 +607,6 @@
                     .replace(/\s+/g, ' ') // Normalize spaces
                     .trim();
                 
-                console.log('After initial normalization:', normalized);
-                
                 // Split into words
                 const words = normalized.split(' ');
                 let result = '';
@@ -645,9 +631,7 @@
                 }
                 
                 // Truncate to reasonable length (max 8 characters)
-                const finalResult = result.substring(0, 8);
-                console.log('Final normalized street name:', finalResult);
-                return finalResult;
+                return result.substring(0, 8);
             }
 
             // Get 3-letter city code
@@ -722,47 +706,6 @@
                 return city.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
             }
 
-            // Phase change listener
-            document.getElementById('phase').addEventListener('change', updateDealStages);
-
-            // Project code auto-generation event listeners
-            console.log('Setting up project code event listeners');
-            
-            // Use a slight delay to ensure all field values are captured
-            function triggerProjectCodeGeneration() {
-                setTimeout(generateProjectCode, 100); // 100ms delay
-            }
-            
-            document.getElementById('customer').addEventListener('blur', function() {
-                console.log('Customer blur event triggered');
-                triggerProjectCodeGeneration();
-            });
-            document.getElementById('job_address').addEventListener('blur', function() {
-                console.log('Job address blur event triggered');
-                triggerProjectCodeGeneration();
-            });
-            document.getElementById('city').addEventListener('blur', function() {
-                console.log('City blur event triggered');
-                triggerProjectCodeGeneration();
-            });
-            
-            // Also trigger on input events for more responsive generation
-            document.getElementById('customer').addEventListener('input', function() {
-                if (this.value.length > 3) { // Only trigger after some typing
-                    triggerProjectCodeGeneration();
-                }
-            });
-            document.getElementById('job_address').addEventListener('input', function() {
-                if (this.value.length > 3) {
-                    triggerProjectCodeGeneration();
-                }
-            });
-            document.getElementById('city').addEventListener('input', function() {
-                if (this.value.length > 2) {
-                    triggerProjectCodeGeneration();
-                }
-            });
-            
             // Expanded ZIP code database with neighborhoods
             const zipDatabase = {
                 // Dallas - Premium/Upscale Areas
@@ -891,33 +834,7 @@
                 '76182': { city: 'North Richland Hills', state: 'TX', neighborhood: 'North NRH' },
                 '76053': { city: 'Hurst', state: 'TX', neighborhood: 'Central Hurst' },
                 '76054': { city: 'Hurst', state: 'TX', neighborhood: 'Northeast Hurst' },
-                '76052': { city: 'Haslet', state: 'TX', neighborhood: 'Haslet' },
-
-                // Other Texas Cities (keeping some for reference)
-                '78701': { city: 'Austin', state: 'TX', neighborhood: 'Downtown Austin' },
-                '78702': { city: 'Austin', state: 'TX', neighborhood: 'East Austin' },
-                '78703': { city: 'Austin', state: 'TX', neighborhood: 'West Austin' },
-                '78704': { city: 'Austin', state: 'TX', neighborhood: 'South Austin' },
-                '78705': { city: 'Austin', state: 'TX', neighborhood: 'UT Campus' },
-                '77001': { city: 'Houston', state: 'TX', neighborhood: 'Downtown Houston' },
-                '77002': { city: 'Houston', state: 'TX', neighborhood: 'Downtown Houston' },
-                '77019': { city: 'Houston', state: 'TX', neighborhood: 'River Oaks' },
-                '77024': { city: 'Houston', state: 'TX', neighborhood: 'Memorial' },
-                '77056': { city: 'Houston', state: 'TX', neighborhood: 'Galleria' },
-                '77098': { city: 'Houston', state: 'TX', neighborhood: 'Upper Kirby' },
-
-                // Major Cities (basic entries)
-                '10001': { city: 'New York', state: 'NY', neighborhood: 'Financial District' },
-                '90210': { city: 'Beverly Hills', state: 'CA', neighborhood: 'Beverly Hills' },
-                '30301': { city: 'Atlanta', state: 'GA', neighborhood: 'Downtown Atlanta' },
-                '33101': { city: 'Miami', state: 'FL', neighborhood: 'Downtown Miami' },
-                '85001': { city: 'Phoenix', state: 'AZ', neighborhood: 'Downtown Phoenix' },
-                '80201': { city: 'Denver', state: 'CO', neighborhood: 'Downtown Denver' },
-                '98101': { city: 'Seattle', state: 'WA', neighborhood: 'Downtown Seattle' },
-                '97201': { city: 'Portland', state: 'OR', neighborhood: 'Downtown Portland' },
-                '89101': { city: 'Las Vegas', state: 'NV', neighborhood: 'Downtown Las Vegas' },
-                '84101': { city: 'Salt Lake City', state: 'UT', neighborhood: 'Downtown SLC' },
-                '70112': { city: 'New Orleans', state: 'LA', neighborhood: 'French Quarter' }
+                '76052': { city: 'Haslet', state: 'TX', neighborhood: 'Haslet' }
             };
 
             // Create neighborhood database for smart suggestions
@@ -938,18 +855,17 @@
                 }
             });
 
-            // Create reverse lookup (city+state to zip)
-            const cityStateToZip = {};
-            Object.keys(zipDatabase).forEach(zip => {
-                const location = zipDatabase[zip];
-                const key = `${location.city.toLowerCase()}-${location.state.toLowerCase()}`;
-                // If multiple zips for same city/state, keep the first one
-                if (!cityStateToZip[key]) {
-                    cityStateToZip[key] = zip;
-                }
-            });
+            // Phase change listener
+            document.getElementById('phase').addEventListener('change', updateDealStages);
+
+            // Project code auto-generation event listeners
+            function triggerProjectCodeGeneration() {
+                setTimeout(generateProjectCode, 100); // 100ms delay
+            }
             
-            console.log('Databases loaded:', Object.keys(zipDatabase).length, 'ZIP codes,', Object.keys(neighborhoodDatabase).length, 'cities with neighborhoods');
+            document.getElementById('customer').addEventListener('blur', triggerProjectCodeGeneration);
+            document.getElementById('job_address').addEventListener('blur', triggerProjectCodeGeneration);
+            document.getElementById('city').addEventListener('blur', triggerProjectCodeGeneration);
             
             // ZIP code lookup (zip to city/state/neighborhood)
             document.getElementById('zip').addEventListener('input', function(e) {
@@ -959,13 +875,11 @@
                 const neighborhoodField = document.getElementById('neighborhood');
                 
                 if (zipDatabase[zip]) {
-                    console.log('Found ZIP:', zip, '→', zipDatabase[zip]);
                     cityField.value = zipDatabase[zip].city;
                     stateField.value = zipDatabase[zip].state;
                     neighborhoodField.value = zipDatabase[zip].neighborhood || '';
                     
                     // Trigger project code generation after ZIP lookup auto-fills fields
-                    console.log('ZIP lookup completed, triggering project code generation');
                     triggerProjectCodeGeneration();
                 }
             });
@@ -982,17 +896,12 @@
                 
                 if (!city || !state) return;
                 
-                const cityKey = `${city.toLowerCase()}-${state.toLowerCase()}`;
-                console.log('Looking for suggestions for:', cityKey, neighborhood ? `with neighborhood: ${neighborhood}` : 'no neighborhood');
-                
                 // Get all ZIP codes for this city/state
                 const cityZips = Object.keys(zipDatabase).filter(zip => {
                     const location = zipDatabase[zip];
                     return location.city.toLowerCase() === city.toLowerCase() && 
                            location.state.toLowerCase() === state.toLowerCase();
                 });
-                
-                console.log('Found', cityZips.length, 'ZIP codes for', cityKey);
                 
                 // If neighborhood is specified, try to find exact matches first
                 let suggestedZips = [];
@@ -1005,7 +914,6 @@
                                location.neighborhood.toLowerCase().includes(neighborhood.toLowerCase());
                     });
                     
-                    console.log('Found', neighborhoodMatches.length, 'neighborhood matches for', neighborhood);
                     suggestedZips = neighborhoodMatches;
                     
                     // If no neighborhood matches, show all city ZIPs
@@ -1025,8 +933,6 @@
                     option.textContent = `${zip} - ${location.neighborhood || location.city}`;
                     zipSuggestions.appendChild(option);
                 });
-                
-                console.log('Added', suggestedZips.length, 'ZIP suggestions');
             }
 
             // Update neighborhood suggestions based on city and state
@@ -1040,8 +946,6 @@
                 
                 if (!city || !state) return;
                 
-                const cityKey = `${city.toLowerCase()}-${state.toLowerCase()}`;
-                
                 // Get all neighborhoods for this city/state
                 const neighborhoods = new Set();
                 Object.keys(zipDatabase).forEach(zip => {
@@ -1052,8 +956,6 @@
                         neighborhoods.add(location.neighborhood);
                     }
                 });
-                
-                console.log('Found', neighborhoods.size, 'neighborhoods for', cityKey);
                 
                 // Populate neighborhood datalist
                 Array.from(neighborhoods).sort().forEach(neighborhood => {
@@ -1143,7 +1045,7 @@
                 }
                 
                 // Send data to Google Sheets
-                fetch('https://script.google.com/macros/s/AKfycby0yBpjEWdyaZkHeorkQv2cyBPY9jMgXOuao0LUdgljrXoVSINBiff4vwB01mWWXeqE/exec', {
+                fetch('https://script.google.com/macros/s/AKfycbz9QufUAD1rl_LnYHKAYssnXrCZRCss5j7UfwtP0LuVEbJDk-kAcY0oYOlYB4QId6hO/exec', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1153,7 +1055,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        alert('✅ Customer opportunity saved successfully! Data has been added to your Google Sheet.');
+                        alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
                         // Optionally clear the form
                         if (confirm('Would you like to clear the form for a new entry?')) {
                             clearForm();
@@ -1164,7 +1066,7 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('❌ Error saving data: ' + error.message + '\n\nPlease try again or contact support.');
+                    alert('Error saving data: ' + error.message + '\n\nPlease try again or contact support.');
                 })
                 .finally(() => {
                     // Reset button state
@@ -1174,7 +1076,7 @@
             });
         });
 
-        // Calculate profit and margin
+        // Calculate profit and margin automatically
         function calculateProfitMargin() {
             const quotePrice = parseFloat(document.getElementById('quote_price').value) || 0;
             const cost = parseFloat(document.getElementById('cost').value) || 0;
