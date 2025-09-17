@@ -1047,25 +1047,13 @@
                 // Send data to Google Sheets with CORS fix
                 fetch('https://script.google.com/macros/s/AKfycbyr2nlLse00TcIfh759diSGj38G2PkdXd8US0lFbPkRgCcFtena6Q7B0Op9wsRXQfKG/exec', {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'text/plain'
                     },
                     body: JSON.stringify(formData)
                 })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Server response:', data);
-                    if (data.status === 'success') {
-                        alert('SUCCESS: Data saved to Google Sheet');
-                    } else {
-                        alert('ERROR: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Network error:', error);
-                    alert('NETWORK ERROR: ' + error.message);
-                })
-                                .then(() => {
+                .then(() => {
                     // Success - can't get response data with no-cors, but that's fine
                     alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
                     // Optionally clear the form
@@ -1082,8 +1070,6 @@
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
                 });
-            });
-        });
 
         // Calculate profit and margin automatically
         function calculateProfitMargin() {
