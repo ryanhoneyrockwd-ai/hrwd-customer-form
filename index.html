@@ -468,641 +468,402 @@
     </div>
 
     <script>
-       // Auto-set today's date when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('date').valueAsDate = new Date();
-
-    // Calculate profit and margin automatically
-    function calculateProfitMargin() {
-        const quotePrice = parseFloat(document.getElementById('quote_price').value) || 0;
-        const cost = parseFloat(document.getElementById('cost').value) || 0;
-        
-        const profit = quotePrice - cost;
-        const margin = quotePrice > 0 ? (profit / quotePrice) * 100 : 0;
-        
-        document.getElementById('profit').value = profit.toFixed(2);
-        document.getElementById('margin').value = margin.toFixed(2);
-    }
-
-    // Update Deal Stage dropdown based on Phase selection
-    function updateDealStages() {
-        const phase = document.getElementById('phase').value;
-        const dealStage = document.getElementById('deal_stage');
-        
-        // Clear existing options
-        dealStage.innerHTML = '';
-        
-        if (phase === '') {
-            dealStage.disabled = true;
-            dealStage.innerHTML = '<option value="">Select Phase First</option>';
-            return;
-        }
-        
-        dealStage.disabled = false;
-        dealStage.innerHTML = '<option value="">Select Deal Stage</option>';
-        
-        // Define stage options for each phase
-        const stageOptions = {
-            'Opportunity': [
-                { value: '1', text: '1 - Strategic Opportunity Identified' },
-                { value: '2', text: '2 - Initial Customer Contact Made' },
-                { value: '3', text: '3 - Needs Assessment Completed' },
-                { value: '4', text: '4 - Preliminary Proposal Presented' }
-            ],
-            'Quote': [
-                { value: '5', text: '5 - Formal Quote Requested' },
-                { value: '6', text: '6 - Quote in Development' },
-                { value: '7', text: '7 - Quote Submitted' },
-                { value: '8', text: '8 - Quote Under Customer Review' }
-            ],
-            'Contract': [
-                { value: '9', text: '9 - Contract Negotiations' },
-                { value: '10', text: '10 - Contract Approved' },
-                { value: '11', text: '11 - Contract Signed' }
-            ],
-            'Production': [
-                { value: '12', text: '12 - Production Scheduled' },
-                { value: '13', text: '13 - In Production' },
-                { value: '14', text: '14 - Production Complete' }
-            ],
-            'Fulfillment': [
-                { value: '15', text: '15 - Shipping Scheduled' },
-                { value: '16', text: '16 - In Transit' },
-                { value: '17', text: '17 - Delivered' }
-            ],
-            'Closeout': [
-                { value: '18', text: '18 - Installation Complete' },
-                { value: '19', text: '19 - Final Invoice Sent' },
-                { value: '20', text: '20 - Project Closed' }
-            ]
-        };
-        
-        // Add options for selected phase
-        if (stageOptions[phase]) {
-            stageOptions[phase].forEach(option => {
-                const optionElement = document.createElement('option');
-                optionElement.value = option.value;
-                optionElement.textContent = option.text;
-                dealStage.appendChild(optionElement);
-            });
-        }
-    }
-
-    // Auto-generate project code based on form inputs
-    function generateProjectCode() {
-        const customer = document.getElementById('customer').value.trim();
-        const jobAddress = document.getElementById('job_address').value.trim();
-        const city = document.getElementById('city').value.trim();
-        
-        if (!customer || !jobAddress || !city) {
-            return; // Need minimum info to generate code
-        }
-        
-        // YY = 2-digit year
-        const currentYear = new Date().getFullYear().toString().slice(-2);
-        
-        // CUST = First 3 letters of last name from Customer/Project Name
-        let customerCode = '';
-        const nameParts = customer.split(' ');
-        if (nameParts.length > 0) {
-            const lastName = nameParts[nameParts.length - 1]; // Get last word as last name
-            customerCode = lastName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
-        }
-        
-        // STRNO = Street number (numeric digits only)
-        const streetNumberMatch = jobAddress.match(/^\d+/);
-        const streetNumber = streetNumberMatch ? streetNumberMatch[0] : '';
-        
-        // STRNAMEABBRSUF = Normalized street name
-        let streetName = jobAddress.replace(/^\d+\s*/, ''); // Remove street number
-        streetName = normalizeStreetName(streetName);
-        
-        // CITY3 = 3-letter city code
-        const cityCode = getCityCode(city);
-        
-        if (customerCode && streetNumber && streetName && cityCode) {
-            const projectCode = `${currentYear}-${customerCode}-${streetNumber}-${streetName}-${cityCode}`;
-            document.getElementById('project').value = projectCode;
-        }
-    }
-
-    // Normalize street name to abbreviated format
-    function normalizeStreetName(streetName) {
-        // Street type abbreviations
-        const streetAbbreviations = {
-            'street': 'ST',
-            'avenue': 'AVE',
-            'boulevard': 'BLVD',
-            'drive': 'DR',
-            'lane': 'LN',
-            'road': 'RD',
-            'circle': 'CIR',
-            'court': 'CT',
-            'place': 'PL',
-            'trail': 'TRL',
-            'way': 'WAY',
-            'parkway': 'PKWY',
-            'terrace': 'TER',
-            'ridge': 'RDG',
-            'creek': 'CRK',
-            'crossing': 'XING',
-            'square': 'SQ',
-            'plaza': 'PLZ'
-        };
-        
-        // Remove punctuation and normalize
-        let normalized = streetName.toLowerCase()
-            .replace(/[^\w\s]/g, '') // Remove punctuation
-            .replace(/\s+/g, ' ') // Normalize spaces
-            .trim();
-        
-        // Split into words
-        const words = normalized.split(' ');
-        let result = '';
-        
-        // Process each word
-        for (let i = 0; i < words.length; i++) {
-            const word = words[i];
+        // Calculate profit and margin automatically
+        function calculateProfitMargin() {
+            const quotePrice = parseFloat(document.getElementById('quote_price').value) || 0;
+            const cost = parseFloat(document.getElementById('cost').value) || 0;
             
-            // Check if it's a street type that should be abbreviated
-            if (streetAbbreviations[word]) {
-                result += streetAbbreviations[word];
-            } else {
-                // For regular words, take first few characters
-                if (word.length <= 3) {
-                    result += word.toUpperCase();
-                } else if (word.length <= 6) {
-                    result += word.substring(0, 4).toUpperCase();
-                } else {
-                    result += word.substring(0, 5).toUpperCase();
+            const profit = quotePrice - cost;
+            const margin = quotePrice > 0 ? (profit / quotePrice) * 100 : 0;
+            
+            document.getElementById('profit').value = profit.toFixed(2);
+            document.getElementById('margin').value = margin.toFixed(2);
+        }
+
+        // Clear form function
+        function clearForm() {
+            if (confirm('Are you sure you want to clear all form data? This action cannot be undone.')) {
+                document.getElementById('opportunityForm').reset();
+                // Reset deal stage dropdown
+                const dealStage = document.getElementById('deal_stage');
+                dealStage.disabled = true;
+                dealStage.innerHTML = '<option value="">Select Phase First</option>';
+                // Reset calculated fields
+                document.getElementById('profit').value = '';
+                document.getElementById('margin').value = '';
+                document.getElementById('project').value = '';
+                // Clear datalist suggestions
+                document.getElementById('zip-suggestions').innerHTML = '';
+                document.getElementById('neighborhood-suggestions').innerHTML = '';
+                // Reset date to today
+                document.getElementById('date').valueAsDate = new Date();
+            }
+        }
+
+        // Auto-set today's date when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('date').valueAsDate = new Date();
+
+            // Update Deal Stage dropdown based on Phase selection
+            function updateDealStages() {
+                const phase = document.getElementById('phase').value;
+                const dealStage = document.getElementById('deal_stage');
+                
+                // Clear existing options
+                dealStage.innerHTML = '';
+                
+                if (phase === '') {
+                    dealStage.disabled = true;
+                    dealStage.innerHTML = '<option value="">Select Phase First</option>';
+                    return;
+                }
+                
+                dealStage.disabled = false;
+                dealStage.innerHTML = '<option value="">Select Deal Stage</option>';
+                
+                // Define stage options for each phase
+                const stageOptions = {
+                    'Opportunity': [
+                        { value: '1', text: '1 - Strategic Opportunity Identified' },
+                        { value: '2', text: '2 - Initial Customer Contact Made' },
+                        { value: '3', text: '3 - Needs Assessment Completed' },
+                        { value: '4', text: '4 - Preliminary Proposal Presented' }
+                    ],
+                    'Quote': [
+                        { value: '5', text: '5 - Formal Quote Requested' },
+                        { value: '6', text: '6 - Quote in Development' },
+                        { value: '7', text: '7 - Quote Submitted' },
+                        { value: '8', text: '8 - Quote Under Customer Review' }
+                    ],
+                    'Contract': [
+                        { value: '9', text: '9 - Contract Negotiations' },
+                        { value: '10', text: '10 - Contract Approved' },
+                        { value: '11', text: '11 - Contract Signed' }
+                    ],
+                    'Production': [
+                        { value: '12', text: '12 - Production Scheduled' },
+                        { value: '13', text: '13 - In Production' },
+                        { value: '14', text: '14 - Production Complete' }
+                    ],
+                    'Fulfillment': [
+                        { value: '15', text: '15 - Shipping Scheduled' },
+                        { value: '16', text: '16 - In Transit' },
+                        { value: '17', text: '17 - Delivered' }
+                    ],
+                    'Closeout': [
+                        { value: '18', text: '18 - Installation Complete' },
+                        { value: '19', text: '19 - Final Invoice Sent' },
+                        { value: '20', text: '20 - Project Closed' }
+                    ]
+                };
+                
+                // Add options for selected phase
+                if (stageOptions[phase]) {
+                    stageOptions[phase].forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.value;
+                        optionElement.textContent = option.text;
+                        dealStage.appendChild(optionElement);
+                    });
                 }
             }
-        }
-        
-        // Truncate to reasonable length (max 8 characters)
-        return result.substring(0, 8);
-    }
 
-    // Get 3-letter city code
-    function getCityCode(city) {
-        const cityCodes = {
-            // DFW Metro
-            'dallas': 'DAL',
-            'fort worth': 'FTW',
-            'plano': 'PLN',
-            'frisco': 'FRI',
-            'allen': 'ALL',
-            'richardson': 'RIC',
-            'irving': 'IRV',
-            'arlington': 'ARL',
-            'garland': 'GAR',
-            'grand prairie': 'GPR',
-            'mesquite': 'MES',
-            'carrollton': 'CAR',
-            'flower mound': 'FLM',
-            'lewisville': 'LEW',
-            'denton': 'DEN',
-            'mckinney': 'MCK',
-            'the colony': 'COL',
-            'coppell': 'COP',
-            'grapevine': 'GRP',
-            'southlake': 'SLK',
-            'keller': 'KEL',
-            'euless': 'EUL',
-            'bedford': 'BED',
-            'hurst': 'HUR',
-            'north richland hills': 'NRH',
-            'haltom city': 'HAL',
-            'farmers branch': 'FAR',
-            'addison': 'ADD',
-            'cedar hill': 'CDH',
-            'desoto': 'DES',
-            'duncanville': 'DUN',
-            'lancaster': 'LAN',
-            'wylie': 'WYL',
-            'rockwall': 'ROC',
-            'rowlett': 'ROW',
-            // Other Texas Cities
-            'austin': 'AUS',
-            'houston': 'HOU',
-            'san antonio': 'SAT',
-            'el paso': 'ELP',
-            'corpus christi': 'CRP',
-            'lubbock': 'LUB',
-            'amarillo': 'AMA',
-            'beaumont': 'BEA',
-            'waco': 'WAC',
-            'tyler': 'TYL',
-            // Major US Cities
-            'new york': 'NYC',
-            'los angeles': 'LAX',
-            'chicago': 'CHI',
-            'phoenix': 'PHX',
-            'philadelphia': 'PHL',
-            'san francisco': 'SFO',
-            'seattle': 'SEA',
-            'denver': 'DEN',
-            'miami': 'MIA',
-            'atlanta': 'ATL'
-        };
-        
-        const cityLower = city.toLowerCase();
-        if (cityCodes[cityLower]) {
-            return cityCodes[cityLower];
-        }
-        
-        // Fallback: use first 3 letters of city name
-        return city.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
-    }
-
-    // Expanded ZIP code database with neighborhoods
-    const zipDatabase = {
-        // Dallas - Premium/Upscale Areas
-        '75205': { city: 'Dallas', state: 'TX', neighborhood: 'Park Cities Area' },
-        '75219': { city: 'Dallas', state: 'TX', neighborhood: 'Oak Lawn' },
-        '75225': { city: 'Dallas', state: 'TX', neighborhood: 'Park Cities Area' },
-        '75201': { city: 'Dallas', state: 'TX', neighborhood: 'Downtown' },
-        '75202': { city: 'Dallas', state: 'TX', neighborhood: 'Uptown' },
-        '75204': { city: 'Dallas', state: 'TX', neighborhood: 'Turtle Creek' },
-        '75209': { city: 'Dallas', state: 'TX', neighborhood: 'Bluffview' },
-        '75230': { city: 'Dallas', state: 'TX', neighborhood: 'Preston Center' },
-        '75206': { city: 'Dallas', state: 'TX', neighborhood: 'Lakewood' },
-        '75214': { city: 'Dallas', state: 'TX', neighborhood: 'East Dallas' },
-        '75218': { city: 'Dallas', state: 'TX', neighborhood: 'Casa Linda' },
-        '75220': { city: 'Dallas', state: 'TX', neighborhood: 'Love Field' },
-        '75229': { city: 'Dallas', state: 'TX', neighborhood: 'Preston Hollow' },
-        '75231': { city: 'Dallas', state: 'TX', neighborhood: 'Lake Highlands' },
-        '75235': { city: 'Dallas', state: 'TX', neighborhood: 'Kessler Park' },
-        '75203': { city: 'Dallas', state: 'TX', neighborhood: 'Cedars' },
-        '75207': { city: 'Dallas', state: 'TX', neighborhood: 'Bishop Arts' },
-        '75208': { city: 'Dallas', state: 'TX', neighborhood: 'Kessler Plaza' },
-        '75210': { city: 'Dallas', state: 'TX', neighborhood: 'Old East Dallas' },
-        '75211': { city: 'Dallas', state: 'TX', neighborhood: 'Trinity Groves' },
-        '75212': { city: 'Dallas', state: 'TX', neighborhood: 'West Dallas' },
-        '75215': { city: 'Dallas', state: 'TX', neighborhood: 'Jubilee Park' },
-        '75216': { city: 'Dallas', state: 'TX', neighborhood: 'Cadillac Heights' },
-        '75217': { city: 'Dallas', state: 'TX', neighborhood: 'Pleasant Grove' },
-        '75221': { city: 'Dallas', state: 'TX', neighborhood: 'Deep Ellum' },
-        '75222': { city: 'Dallas', state: 'TX', neighborhood: 'Fair Park' },
-        '75223': { city: 'Dallas', state: 'TX', neighborhood: 'Lakewood Heights' },
-        '75224': { city: 'Dallas', state: 'TX', neighborhood: 'Oak Cliff' },
-        '75226': { city: 'Dallas', state: 'TX', neighborhood: 'East Quarter' },
-        '75227': { city: 'Dallas', state: 'TX', neighborhood: 'Lochwood' },
-        '75228': { city: 'Dallas', state: 'TX', neighborhood: 'White Rock' },
-        '75232': { city: 'Dallas', state: 'TX', neighborhood: 'Duncanville Area' },
-        '75233': { city: 'Dallas', state: 'TX', neighborhood: 'Forest Hills' },
-        '75234': { city: 'Dallas', state: 'TX', neighborhood: 'Farmers Branch Area' },
-        '75236': { city: 'Dallas', state: 'TX', neighborhood: 'Redbird' },
-        '75237': { city: 'Dallas', state: 'TX', neighborhood: 'Cedar Crest' },
-        '75238': { city: 'Dallas', state: 'TX', neighborhood: 'Lake Highlands South' },
-        '75240': { city: 'Dallas', state: 'TX', neighborhood: 'North Dallas' },
-        '75243': { city: 'Dallas', state: 'TX', neighborhood: 'Casa View' },
-        '75244': { city: 'Dallas', state: 'TX', neighborhood: 'North Dallas East' },
-        '75246': { city: 'Dallas', state: 'TX', neighborhood: 'Exposition Park' },
-        '75247': { city: 'Dallas', state: 'TX', neighborhood: 'Stemmons Corridor' },
-        '75248': { city: 'Dallas', state: 'TX', neighborhood: 'Bent Tree' },
-        '75249': { city: 'Dallas', state: 'TX', neighborhood: 'Inwood Village' },
-        '75251': { city: 'Dallas', state: 'TX', neighborhood: 'Galleria' },
-        '75252': { city: 'Dallas', state: 'TX', neighborhood: 'North Dallas West' },
-        '75254': { city: 'Dallas', state: 'TX', neighborhood: 'Far North Dallas' },
-
-        // Dallas Suburbs
-        '75013': { city: 'Allen', state: 'TX', neighborhood: 'Central Allen' },
-        '75023': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
-        '75024': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
-        '75025': { city: 'Plano', state: 'TX', neighborhood: 'East Plano' },
-        '75026': { city: 'Plano', state: 'TX', neighborhood: 'East Plano' },
-        '75074': { city: 'Plano', state: 'TX', neighborhood: 'Central Plano' },
-        '75075': { city: 'Plano', state: 'TX', neighborhood: 'Central Plano' },
-        '75093': { city: 'Plano', state: 'TX', neighborhood: 'Legacy West' },
-        '75094': { city: 'Plano', state: 'TX', neighborhood: 'Willow Bend' },
-        '75033': { city: 'Frisco', state: 'TX', neighborhood: 'Central Frisco' },
-        '75034': { city: 'Frisco', state: 'TX', neighborhood: 'East Frisco' },
-        '75035': { city: 'Frisco', state: 'TX', neighborhood: 'North Frisco' },
-        '75080': { city: 'Richardson', state: 'TX', neighborhood: 'Central Richardson' },
-        '75081': { city: 'Richardson', state: 'TX', neighborhood: 'East Richardson' },
-        '75082': { city: 'Richardson', state: 'TX', neighborhood: 'Richardson Heights' },
-        '75083': { city: 'Richardson', state: 'TX', neighborhood: 'Canyon Creek' },
-        '75085': { city: 'Richardson', state: 'TX', neighborhood: 'Northrich' },
-        '75019': { city: 'Coppell', state: 'TX', neighborhood: 'Central Coppell' },
-        '75028': { city: 'Flower Mound', state: 'TX', neighborhood: 'Central Flower Mound' },
-        '75022': { city: 'Flower Mound', state: 'TX', neighborhood: 'South Flower Mound' },
-        '75056': { city: 'The Colony', state: 'TX', neighborhood: 'The Colony' },
-        '75057': { city: 'Lewisville', state: 'TX', neighborhood: 'Central Lewisville' },
-        '75067': { city: 'Lewisville', state: 'TX', neighborhood: 'South Lewisville' },
-        '75077': { city: 'Lewisville', state: 'TX', neighborhood: 'Castle Hills' },
-
-        // Irving
-        '75038': { city: 'Irving', state: 'TX', neighborhood: 'Las Colinas' },
-        '75039': { city: 'Irving', state: 'TX', neighborhood: 'Valley Ranch' },
-        '75060': { city: 'Irving', state: 'TX', neighborhood: 'Central Irving' },
-        '75061': { city: 'Irving', state: 'TX', neighborhood: 'South Irving' },
-        '75062': { city: 'Irving', state: 'TX', neighborhood: 'North Irving' },
-        '75063': { city: 'Irving', state: 'TX', neighborhood: 'Four Seasons' },
-        '75014': { city: 'Irving', state: 'TX', neighborhood: 'Las Colinas East' },
-        '75017': { city: 'Irving', state: 'TX', neighborhood: 'DFW Airport Area' },
-
-        // Fort Worth Areas
-        '76107': { city: 'Fort Worth', state: 'TX', neighborhood: 'Cultural District' },
-        '76108': { city: 'Fort Worth', state: 'TX', neighborhood: 'Wedgwood' },
-        '76109': { city: 'Fort Worth', state: 'TX', neighborhood: 'Ridglea' },
-        '76110': { city: 'Fort Worth', state: 'TX', neighborhood: 'Polytechnic Heights' },
-        '76111': { city: 'Fort Worth', state: 'TX', neighborhood: 'Riverside' },
-        '76112': { city: 'Fort Worth', state: 'TX', neighborhood: 'East Fort Worth' },
-        '76113': { city: 'Fort Worth', state: 'TX', neighborhood: 'Kennedale Area' },
-        '76114': { city: 'Fort Worth', state: 'TX', neighborhood: 'Benbrook Area' },
-        '76115': { city: 'Fort Worth', state: 'TX', neighborhood: 'Southwest Fort Worth' },
-        '76116': { city: 'Fort Worth', state: 'TX', neighborhood: 'White Settlement' },
-        '76117': { city: 'Fort Worth', state: 'TX', neighborhood: 'Haltom City Area' },
-        '76118': { city: 'Fort Worth', state: 'TX', neighborhood: 'North Richland Hills Area' },
-        '76119': { city: 'Fort Worth', state: 'TX', neighborhood: 'Handley' },
-        '76120': { city: 'Fort Worth', state: 'TX', neighborhood: 'Arlington Heights' },
-        '76121': { city: 'Fort Worth', state: 'TX', neighborhood: 'River District' },
-        '76122': { city: 'Fort Worth', state: 'TX', neighborhood: 'Seminary South' },
-        '76123': { city: 'Fort Worth', state: 'TX', neighborhood: 'Southwest Hills' },
-        '76124': { city: 'Fort Worth', state: 'TX', neighborhood: 'North Fort Worth' },
-        '76126': { city: 'Fort Worth', state: 'TX', neighborhood: 'Lake Worth' },
-        '76127': { city: 'Fort Worth', state: 'TX', neighborhood: 'Marine Creek' },
-        '76129': { city: 'Fort Worth', state: 'TX', neighborhood: 'Fossil Creek' },
-        '76131': { city: 'Fort Worth', state: 'TX', neighborhood: 'TCU Area' },
-        '76132': { city: 'Fort Worth', state: 'TX', neighborhood: 'Westside' },
-        '76133': { city: 'Fort Worth', state: 'TX', neighborhood: 'Southside' },
-        '76134': { city: 'Fort Worth', state: 'TX', neighborhood: 'Everman Area' },
-        '76135': { city: 'Fort Worth', state: 'TX', neighborhood: 'Westworth Village' },
-        '76136': { city: 'Fort Worth', state: 'TX', neighborhood: 'Benbrook' },
-        '76137': { city: 'Fort Worth', state: 'TX', neighborhood: 'Richland Hills' },
-        '76140': { city: 'Fort Worth', state: 'TX', neighborhood: 'South Hills' },
-
-        // Fort Worth Suburbs
-        '76244': { city: 'Keller', state: 'TX', neighborhood: 'Central Keller' },
-        '76248': { city: 'Keller', state: 'TX', neighborhood: 'North Keller' },
-        '76092': { city: 'Southlake', state: 'TX', neighborhood: 'Southlake' },
-        '76051': { city: 'Grapevine', state: 'TX', neighborhood: 'Historic Grapevine' },
-        '76262': { city: 'Roanoke', state: 'TX', neighborhood: 'Roanoke' },
-        '76180': { city: 'North Richland Hills', state: 'TX', neighborhood: 'Central NRH' },
-        '76182': { city: 'North Richland Hills', state: 'TX', neighborhood: 'North NRH' },
-        '76053': { city: 'Hurst', state: 'TX', neighborhood: 'Central Hurst' },
-        '76054': { city: 'Hurst', state: 'TX', neighborhood: 'Northeast Hurst' },
-        '76052': { city: 'Haslet', state: 'TX', neighborhood: 'Haslet' }
-    };
-
-    // Create neighborhood database for smart suggestions
-    const neighborhoodDatabase = {};
-    Object.keys(zipDatabase).forEach(zip => {
-        const location = zipDatabase[zip];
-        const cityKey = `${location.city.toLowerCase()}-${location.state.toLowerCase()}`;
-        
-        if (!neighborhoodDatabase[cityKey]) {
-            neighborhoodDatabase[cityKey] = [];
-        }
-        
-        if (location.neighborhood && !neighborhoodDatabase[cityKey].find(item => item.neighborhood === location.neighborhood)) {
-            neighborhoodDatabase[cityKey].push({
-                neighborhood: location.neighborhood,
-                zip: zip
-            });
-        }
-    });
-
-    // Phase change listener
-    document.getElementById('phase').addEventListener('change', updateDealStages);
-
-    // Project code auto-generation event listeners
-    function triggerProjectCodeGeneration() {
-        setTimeout(generateProjectCode, 100); // 100ms delay
-    }
-    
-    document.getElementById('customer').addEventListener('blur', triggerProjectCodeGeneration);
-    document.getElementById('job_address').addEventListener('blur', triggerProjectCodeGeneration);
-    document.getElementById('city').addEventListener('blur', triggerProjectCodeGeneration);
-    
-    // ZIP code lookup (zip to city/state/neighborhood)
-    document.getElementById('zip').addEventListener('input', function(e) {
-        const zip = e.target.value.trim();
-        const cityField = document.getElementById('city');
-        const stateField = document.getElementById('state');
-        const neighborhoodField = document.getElementById('neighborhood');
-        
-        if (zipDatabase[zip]) {
-            cityField.value = zipDatabase[zip].city;
-            stateField.value = zipDatabase[zip].state;
-            neighborhoodField.value = zipDatabase[zip].neighborhood || '';
-            
-            // Trigger project code generation after ZIP lookup auto-fills fields
-            triggerProjectCodeGeneration();
-        }
-    });
-
-    // Update ZIP suggestions based on city, neighborhood, and state
-    function updateZipSuggestions() {
-        const city = document.getElementById('city').value.trim();
-        const neighborhood = document.getElementById('neighborhood').value.trim();
-        const state = document.getElementById('state').value.trim();
-        const zipSuggestions = document.getElementById('zip-suggestions');
-        
-        // Clear existing suggestions
-        zipSuggestions.innerHTML = '';
-        
-        if (!city || !state) return;
-        
-        // Get all ZIP codes for this city/state
-        const cityZips = Object.keys(zipDatabase).filter(zip => {
-            const location = zipDatabase[zip];
-            return location.city.toLowerCase() === city.toLowerCase() && 
-                   location.state.toLowerCase() === state.toLowerCase();
-        });
-        
-        // If neighborhood is specified, try to find exact matches first
-        let suggestedZips = [];
-        
-        if (neighborhood) {
-            // Look for neighborhood matches
-            const neighborhoodMatches = cityZips.filter(zip => {
-                const location = zipDatabase[zip];
-                return location.neighborhood && 
-                       location.neighborhood.toLowerCase().includes(neighborhood.toLowerCase());
-            });
-            
-            suggestedZips = neighborhoodMatches;
-            
-            // If no neighborhood matches, show all city ZIPs
-            if (suggestedZips.length === 0) {
-                suggestedZips = cityZips.slice(0, 10); // Limit to first 10
-            }
-        } else {
-            // No neighborhood specified, show all city ZIPs (limited)
-            suggestedZips = cityZips.slice(0, 10);
-        }
-        
-        // Populate datalist with suggestions
-        suggestedZips.forEach(zip => {
-            const location = zipDatabase[zip];
-            const option = document.createElement('option');
-            option.value = zip;
-            option.textContent = `${zip} - ${location.neighborhood || location.city}`;
-            zipSuggestions.appendChild(option);
-        });
-    }
-
-    // Update neighborhood suggestions based on city and state
-    function updateNeighborhoodSuggestions() {
-        const city = document.getElementById('city').value.trim();
-        const state = document.getElementById('state').value.trim();
-        const neighborhoodSuggestions = document.getElementById('neighborhood-suggestions');
-        
-        // Clear existing suggestions
-        neighborhoodSuggestions.innerHTML = '';
-        
-        if (!city || !state) return;
-        
-        // Get all neighborhoods for this city/state
-        const neighborhoods = new Set();
-        Object.keys(zipDatabase).forEach(zip => {
-            const location = zipDatabase[zip];
-            if (location.city.toLowerCase() === city.toLowerCase() && 
-                location.state.toLowerCase() === state.toLowerCase() &&
-                location.neighborhood) {
-                neighborhoods.add(location.neighborhood);
-            }
-        });
-        
-        // Populate neighborhood datalist
-        Array.from(neighborhoods).sort().forEach(neighborhood => {
-            const option = document.createElement('option');
-            option.value = neighborhood;
-            neighborhoodSuggestions.appendChild(option);
-        });
-    }
-
-    // Add listeners for updating suggestions
-    document.getElementById('city').addEventListener('input', function() {
-        updateNeighborhoodSuggestions();
-        updateZipSuggestions();
-    });
-    document.getElementById('city').addEventListener('blur', function() {
-        updateNeighborhoodSuggestions();
-        updateZipSuggestions();
-    });
-    document.getElementById('neighborhood').addEventListener('input', updateZipSuggestions);
-    document.getElementById('neighborhood').addEventListener('blur', updateZipSuggestions);
-    document.getElementById('state').addEventListener('change', function() {
-        updateNeighborhoodSuggestions();
-        updateZipSuggestions();
-    });
-
-    // Profit/margin calculation
-    document.getElementById('quote_price').addEventListener('input', calculateProfitMargin);
-    document.getElementById('cost').addEventListener('input', calculateProfitMargin);
-
-    // Form submission handler
-    document.getElementById('opportunityForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Show loading state
-        const submitBtn = document.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '💾 Saving...';
-        submitBtn.disabled = true;
-        
-        // Collect all form data
-        const formData = {
-            timestamp: new Date().toISOString(),
-            date: document.getElementById('date').value,
-            project: document.getElementById('project').value,
-            phase: document.getElementById('phase').value,
-            deal_stage: document.getElementById('deal_stage').value,
-            customer: document.getElementById('customer').value,
-            builder: document.getElementById('builder').value,
-            architect: document.getElementById('architect').value,
-            po_number: document.getElementById('po_number').value,
-            job_address: document.getElementById('job_address').value,
-            city: document.getElementById('city').value,
-            state: document.getElementById('state').value,
-            zip: document.getElementById('zip').value,
-            neighborhood: document.getElementById('neighborhood').value,
-            contact_name: document.getElementById('contact_name').value,
-            contact_phone: document.getElementById('contact_phone').value,
-            contact_email: document.getElementById('contact_email').value,
-            product_quoted: document.getElementById('product_quoted').value,
-            product_quoted_2: document.getElementById('product_quoted_2').value,
-            quote_price: document.getElementById('quote_price').value,
-            cost: document.getElementById('cost').value,
-            profit: document.getElementById('profit').value,
-            margin: document.getElementById('margin').value,
-            phase_text: document.getElementById('phase').options[document.getElementById('phase').selectedIndex]?.text || '',
-            deal_stage_text: document.getElementById('deal_stage').options[document.getElementById('deal_stage').selectedIndex]?.text || ''
-        };
-        
-        // Basic form validation
-        const requiredFields = document.querySelectorAll('[required]');
-        let allValid = true;
-        
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                allValid = false;
-                field.style.borderColor = '#e74c3c';
-            } else {
-                field.style.borderColor = '#e9ecef';
-            }
-        });
-        
-        if (!allValid) {
-            alert('Please fill in all required fields (marked with *)');
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-            return;
-        }
-        
-        // Send data to Google Sheets
-        fetch('https://script.google.com/macros/s/AKfycbwvhWi3CSSq-ORMGIqkBd5iw4hEi7fm9tM6niYiysBPoRRQQZMmUMQ_FzzOoKkrNuF4/exec', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.status === 'success') {
-                alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
-                if (confirm('Would you like to clear the form for a new entry?')) {
-                    clearForm();
+            // Auto-generate project code based on form inputs
+            function generateProjectCode() {
+                const customer = document.getElementById('customer').value.trim();
+                const jobAddress = document.getElementById('job_address').value.trim();
+                const city = document.getElementById('city').value.trim();
+                
+                if (!customer || !jobAddress || !city) {
+                    return; // Need minimum info to generate code
                 }
-            } else {
-                throw new Error(result.message || 'Unknown error');
+                
+                // YY = 2-digit year
+                const currentYear = new Date().getFullYear().toString().slice(-2);
+                
+                // CUST = First 3 letters of last name from Customer/Project Name
+                let customerCode = '';
+                const nameParts = customer.split(' ');
+                if (nameParts.length > 0) {
+                    const lastName = nameParts[nameParts.length - 1]; // Get last word as last name
+                    customerCode = lastName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
+                }
+                
+                // STRNO = Street number (numeric digits only)
+                const streetNumberMatch = jobAddress.match(/^\d+/);
+                const streetNumber = streetNumberMatch ? streetNumberMatch[0] : '';
+                
+                // STRNAMEABBRSUF = Normalized street name
+                let streetName = jobAddress.replace(/^\d+\s*/, ''); // Remove street number
+                streetName = normalizeStreetName(streetName);
+                
+                // CITY3 = 3-letter city code
+                const cityCode = getCityCode(city);
+                
+                if (customerCode && streetNumber && streetName && cityCode) {
+                    const projectCode = `${currentYear}-${customerCode}-${streetNumber}-${streetName}-${cityCode}`;
+                    document.getElementById('project').value = projectCode;
+                }
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error saving data: ' + error.message + '. Please try again or contact support.');
-        })
-        .finally(() => {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
+
+            // Normalize street name to abbreviated format
+            function normalizeStreetName(streetName) {
+                // Street type abbreviations
+                const streetAbbreviations = {
+                    'street': 'ST',
+                    'avenue': 'AVE',
+                    'boulevard': 'BLVD',
+                    'drive': 'DR',
+                    'lane': 'LN',
+                    'road': 'RD',
+                    'circle': 'CIR',
+                    'court': 'CT',
+                    'place': 'PL',
+                    'trail': 'TRL',
+                    'way': 'WAY',
+                    'parkway': 'PKWY',
+                    'terrace': 'TER',
+                    'ridge': 'RDG',
+                    'creek': 'CRK',
+                    'crossing': 'XING',
+                    'square': 'SQ',
+                    'plaza': 'PLZ'
+                };
+                
+                // Remove punctuation and normalize
+                let normalized = streetName.toLowerCase()
+                    .replace(/[^\w\s]/g, '') // Remove punctuation
+                    .replace(/\s+/g, ' ') // Normalize spaces
+                    .trim();
+                
+                // Split into words
+                const words = normalized.split(' ');
+                let result = '';
+                
+                // Process each word
+                for (let i = 0; i < words.length; i++) {
+                    const word = words[i];
+                    
+                    // Check if it's a street type that should be abbreviated
+                    if (streetAbbreviations[word]) {
+                        result += streetAbbreviations[word];
+                    } else {
+                        // For regular words, take first few characters
+                        if (word.length <= 3) {
+                            result += word.toUpperCase();
+                        } else if (word.length <= 6) {
+                            result += word.substring(0, 4).toUpperCase();
+                        } else {
+                            result += word.substring(0, 5).toUpperCase();
+                        }
+                    }
+                }
+                
+                // Truncate to reasonable length (max 8 characters)
+                return result.substring(0, 8);
+            }
+
+            // Get 3-letter city code
+            function getCityCode(city) {
+                const cityCodes = {
+                    // DFW Metro
+                    'dallas': 'DAL',
+                    'fort worth': 'FTW',
+                    'plano': 'PLN',
+                    'frisco': 'FRI',
+                    'allen': 'ALL',
+                    'richardson': 'RIC',
+                    'irving': 'IRV',
+                    'arlington': 'ARL',
+                    'garland': 'GAR',
+                    'grand prairie': 'GPR',
+                    'mesquite': 'MES',
+                    'carrollton': 'CAR',
+                    'flower mound': 'FLM',
+                    'lewisville': 'LEW',
+                    'denton': 'DEN',
+                    'mckinney': 'MCK',
+                    'the colony': 'COL',
+                    'coppell': 'COP',
+                    'grapevine': 'GRP',
+                    'southlake': 'SLK',
+                    'keller': 'KEL',
+                    'euless': 'EUL',
+                    'bedford': 'BED',
+                    'hurst': 'HUR',
+                    'north richland hills': 'NRH',
+                    'haltom city': 'HAL',
+                    'farmers branch': 'FAR',
+                    'addison': 'ADD',
+                    'cedar hill': 'CDH',
+                    'desoto': 'DES',
+                    'duncanville': 'DUN',
+                    'lancaster': 'LAN',
+                    'wylie': 'WYL',
+                    'rockwall': 'ROC',
+                    'rowlett': 'ROW'
+                };
+                
+                const cityLower = city.toLowerCase();
+                if (cityCodes[cityLower]) {
+                    return cityCodes[cityLower];
+                }
+                
+                // Fallback: use first 3 letters of city name
+                return city.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
+            }
+
+            // Simplified ZIP code database for key DFW areas
+            const zipDatabase = {
+                '75205': { city: 'Dallas', state: 'TX', neighborhood: 'Park Cities Area' },
+                '75219': { city: 'Dallas', state: 'TX', neighborhood: 'Oak Lawn' },
+                '75225': { city: 'Dallas', state: 'TX', neighborhood: 'Park Cities Area' },
+                '75201': { city: 'Dallas', state: 'TX', neighborhood: 'Downtown' },
+                '75202': { city: 'Dallas', state: 'TX', neighborhood: 'Uptown' },
+                '75204': { city: 'Dallas', state: 'TX', neighborhood: 'Turtle Creek' },
+                '75209': { city: 'Dallas', state: 'TX', neighborhood: 'Bluffview' },
+                '75230': { city: 'Dallas', state: 'TX', neighborhood: 'Preston Center' },
+                '75206': { city: 'Dallas', state: 'TX', neighborhood: 'Lakewood' },
+                '75214': { city: 'Dallas', state: 'TX', neighborhood: 'East Dallas' },
+                '75013': { city: 'Allen', state: 'TX', neighborhood: 'Central Allen' },
+                '75023': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
+                '75024': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
+                '75025': { city: 'Plano', state: 'TX', neighborhood: 'East Plano' },
+                '75033': { city: 'Frisco', state: 'TX', neighborhood: 'Central Frisco' },
+                '75034': { city: 'Frisco', state: 'TX', neighborhood: 'East Frisco' },
+                '75080': { city: 'Richardson', state: 'TX', neighborhood: 'Central Richardson' },
+                '76107': { city: 'Fort Worth', state: 'TX', neighborhood: 'Cultural District' },
+                '76109': { city: 'Fort Worth', state: 'TX', neighborhood: 'Ridglea' },
+                '76244': { city: 'Keller', state: 'TX', neighborhood: 'Central Keller' },
+                '76092': { city: 'Southlake', state: 'TX', neighborhood: 'Southlake' },
+                '76051': { city: 'Grapevine', state: 'TX', neighborhood: 'Historic Grapevine' }
+            };
+
+            // Phase change listener
+            document.getElementById('phase').addEventListener('change', updateDealStages);
+
+            // Project code auto-generation event listeners
+            function triggerProjectCodeGeneration() {
+                setTimeout(generateProjectCode, 100);
+            }
+            
+            document.getElementById('customer').addEventListener('blur', triggerProjectCodeGeneration);
+            document.getElementById('job_address').addEventListener('blur', triggerProjectCodeGeneration);
+            document.getElementById('city').addEventListener('blur', triggerProjectCodeGeneration);
+            
+            // ZIP code lookup
+            document.getElementById('zip').addEventListener('input', function(e) {
+                const zip = e.target.value.trim();
+                const cityField = document.getElementById('city');
+                const stateField = document.getElementById('state');
+                const neighborhoodField = document.getElementById('neighborhood');
+                
+                if (zipDatabase[zip]) {
+                    cityField.value = zipDatabase[zip].city;
+                    stateField.value = zipDatabase[zip].state;
+                    neighborhoodField.value = zipDatabase[zip].neighborhood || '';
+                    triggerProjectCodeGeneration();
+                }
+            });
+
+            // Profit/margin calculation
+            document.getElementById('quote_price').addEventListener('input', calculateProfitMargin);
+            document.getElementById('cost').addEventListener('input', calculateProfitMargin);
+
+            // Form submission handler
+            document.getElementById('opportunityForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                const submitBtn = document.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '💾 Saving...';
+                submitBtn.disabled = true;
+                
+                // Collect all form data
+                const formData = {
+                    timestamp: new Date().toISOString(),
+                    date: document.getElementById('date').value,
+                    project: document.getElementById('project').value,
+                    phase: document.getElementById('phase').value,
+                    deal_stage: document.getElementById('deal_stage').value,
+                    customer: document.getElementById('customer').value,
+                    builder: document.getElementById('builder').value,
+                    architect: document.getElementById('architect').value,
+                    po_number: document.getElementById('po_number').value,
+                    job_address: document.getElementById('job_address').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    zip: document.getElementById('zip').value,
+                    neighborhood: document.getElementById('neighborhood').value,
+                    contact_name: document.getElementById('contact_name').value,
+                    contact_phone: document.getElementById('contact_phone').value,
+                    contact_email: document.getElementById('contact_email').value,
+                    product_quoted: document.getElementById('product_quoted').value,
+                    product_quoted_2: document.getElementById('product_quoted_2').value,
+                    quote_price: document.getElementById('quote_price').value,
+                    cost: document.getElementById('cost').value,
+                    profit: document.getElementById('profit').value,
+                    margin: document.getElementById('margin').value,
+                    phase_text: document.getElementById('phase').options[document.getElementById('phase').selectedIndex]?.text || '',
+                    deal_stage_text: document.getElementById('deal_stage').options[document.getElementById('deal_stage').selectedIndex]?.text || ''
+                };
+                
+                // Basic form validation
+                const requiredFields = document.querySelectorAll('[required]');
+                let allValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        allValid = false;
+                        field.style.borderColor = '#e74c3c';
+                    } else {
+                        field.style.borderColor = '#e9ecef';
+                    }
+                });
+                
+                if (!allValid) {
+                    alert('Please fill in all required fields (marked with *)');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    return;
+                }
+                
+                // Send data to Google Sheets
+                fetch('https://script.google.com/macros/s/AKfycbwvhWi3CSSq-ORMGIqkBd5iw4hEi7fm9tM6niYiysBPoRRQQZMmUMQ_FzzOoKkrNuF4/exec', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    if (result.status === 'success') {
+                        alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
+                        if (confirm('Would you like to clear the form for a new entry?')) {
+                            clearForm();
+                        }
+                    } else {
+                        throw new Error(result.message || 'Unknown error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error saving data: ' + error.message + '. Please try again or contact support.');
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
+
         });
-    }); // ← This closing bracket was missing!
-
-}); // ← End of DOMContentLoaded
-
-// Clear form function (global scope)
-function clearForm() {
-    if (confirm('Are you sure you want to clear all form data? This action cannot be undone.')) {
-        document.getElementById('opportunityForm').reset();
-        // Reset deal stage dropdown
-        const dealStage = document.getElementById('deal_stage');
-        dealStage.disabled = true;
-        dealStage.innerHTML = '<option value="">Select Phase First</option>';
-        // Reset calculated fields
-        document.getElementById('profit').value = '';
-        document.getElementById('margin').value = '';
-        document.getElementById('project').value = '';
-        // Clear datalist suggestions
-        document.getElementById('zip-suggestions').innerHTML = '';
-        document.getElementById('neighborhood-suggestions').innerHTML = '';
-        // Reset date to today
-        document.getElementById('date').valueAsDate = new Date();
-    }
-}
     </script>
 </body>
 </html>
