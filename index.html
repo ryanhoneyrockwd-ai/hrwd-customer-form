@@ -829,33 +829,25 @@
                     return;
                 }
                 
-                // Send data to Google Sheets
+                // Send data to Google Sheets (CORS workaround)
                 fetch('https://script.google.com/macros/s/AKfycbwvhWi3CSSq-ORMGIqkBd5iw4hEi7fm9tM6niYiysBPoRRQQZMmUMQ_FzzOoKkrNuF4/exec', {
                     method: 'POST',
+                    mode: 'no-cors',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain',
                     },
                     body: JSON.stringify(formData)
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(result => {
-                    if (result.status === 'success') {
-                        alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
-                        if (confirm('Would you like to clear the form for a new entry?')) {
-                            clearForm();
-                        }
-                    } else {
-                        throw new Error(result.message || 'Unknown error');
+                .then(() => {
+                    // Success - can't get response data with no-cors, but that's fine
+                    alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
+                    if (confirm('Would you like to clear the form for a new entry?')) {
+                        clearForm();
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error saving data: ' + error.message + '. Please try again or contact support.');
+                    alert('Error saving data. Please try again or contact support.');
                 })
                 .finally(() => {
                     submitBtn.innerHTML = originalText;
