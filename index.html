@@ -1044,46 +1044,44 @@
                     return;
                 }
                 
-                // Send data to Google Sheets with CORS fix
+               // Send data to Google Sheets (updated fetch)
                 fetch('https://script.google.com/macros/s/AKfycbwvhWi3CSSq-ORMGIqkBd5iw4hEi7fm9tM6niYiysBPoRRQQZMmUMQ_FzzOoKkrNuF4/exec', {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: {
-                        'Content-Type': 'text/plain'
+                        'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(formData)
                 })
-                .then(() => {
-                    // Success - can't get response data with no-cors, but that's fine
-                    alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
-                    // Optionally clear the form
-                    if (confirm('Would you like to clear the form for a new entry?')) {
-                        clearForm();
+                .then(response => response.json())
+                .then(result => {
+                    if (result.status === 'success') {
+                        alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
+                        if (confirm('Would you like to clear the form for a new entry?')) {
+                            clearForm();
+                        }
+                    } else {
+                        throw new Error(result.message || 'Unknown error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error saving data. Please try again or contact support.');
+                    alert('Error saving data: ' + error.message + '. Please try again or contact support.');
                 })
                 .finally(() => {
-                    // Reset button state
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
                 });
-            });
-        });
-
-        // Calculate profit and margin automatically
-        function calculateProfitMargin() {
-            const quotePrice = parseFloat(document.getElementById('quote_price').value) || 0;
-            const cost = parseFloat(document.getElementById('cost').value) || 0;
-            
-            const profit = quotePrice - cost;
-            const margin = quotePrice > 0 ? (profit / quotePrice) * 100 : 0;
-            
-            document.getElementById('profit').value = profit.toFixed(2);
-            document.getElementById('margin').value = margin.toFixed(2);
-        }
+                        // Calculate profit and margin automatically
+                        function calculateProfitMargin() {
+                            const quotePrice = parseFloat(document.getElementById('quote_price').value) || 0;
+                            const cost = parseFloat(document.getElementById('cost').value) || 0;
+                            
+                            const profit = quotePrice - cost;
+                            const margin = quotePrice > 0 ? (profit / quotePrice) * 100 : 0;
+                            
+                            document.getElementById('profit').value = profit.toFixed(2);
+                            document.getElementById('margin').value = margin.toFixed(2);
+                        }
 
         // Clear form function
         function clearForm() {
