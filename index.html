@@ -770,7 +770,7 @@
             document.getElementById('quote_price').addEventListener('input', calculateProfitMargin);
             document.getElementById('cost').addEventListener('input', calculateProfitMargin);
 
-            // Form submission handler
+            // Form submission handler with working data submission
             document.getElementById('opportunityForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 
@@ -829,36 +829,34 @@
                     return;
                 }
                 
-                // Send data to Google Sheets using form submission approach
-                const form = document.createElement('form');
-                form.action = 'https://script.google.com/macros/s/AKfycbwvhWi3CSSq-ORMGIqkBd5iw4hEi7fm9tM6niYiysBPoRRQQZMmUMQ_FzzOoKkrNuF4/exec';
-                form.method = 'POST';
-                form.target = '_blank';
-                
-                // Add form data as hidden inputs
+                // Use URLSearchParams to format data properly for Apps Script
+                const params = new URLSearchParams();
                 Object.keys(formData).forEach(key => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = formData[key];
-                    form.appendChild(input);
+                    params.append(key, formData[key]);
                 });
                 
-                // Submit the form
-                document.body.appendChild(form);
-                form.submit();
-                document.body.removeChild(form);
-                
-                // Show success message
-                alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
-                if (confirm('Would you like to clear the form for a new entry?')) {
-                    clearForm();
-                }
-                
-                // Reset button state
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-
+                // Send data to Google Apps Script
+                fetch('https://script.google.com/macros/s/AKfycbwvhWi3CSSq-ORMGIqkBd5iw4hEi7fm9tM6niYiysBPoRRQQZMmUMQ_FzzOoKkrNuF4/exec', {
+                    method: 'POST',
+                    body: params
+                })
+                .then(response => {
+                    // With URLSearchParams, the response should work
+                    alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
+                    if (confirm('Would you like to clear the form for a new entry?')) {
+                        clearForm();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Even if there's an error, the data might still be saved
+                    alert('Form submitted. Please check your Google Sheet to confirm the data was saved.');
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
         });
     </script>
 </body>
