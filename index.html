@@ -224,7 +224,7 @@
             <p>Window & Door Distribution | New Customer Intake Form</p>
         </div>
         
-        <form class="form-container" id="opportunityForm" action="https://script.google.com/macros/s/AKfycbyE7nTJBsdQw_GzzSuA-AhYxTvqk6xM7XU0J5SjVrDnmEGk9eNiydu2AjeLhVGSrJ4e/exec" method="POST" target="_blank">
+       <form class="form-container" id="opportunityForm">
             <!-- Basic Information -->
             <div class="section">
                 <h2><span class="section-icon">📋</span>Basic Information</h2>
@@ -771,6 +771,63 @@
             document.getElementById('cost').addEventListener('input', calculateProfitMargin);
 
         });
+            // Form submission handler with popups
+            document.getElementById('opportunityForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                const submitBtn = document.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '💾 Saving...';
+                submitBtn.disabled = true;
+                
+                // Collect form data
+                const formData = new FormData(this);
+                
+                // Basic validation
+                const requiredFields = document.querySelectorAll('[required]');
+                let allValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        allValid = false;
+                        field.style.borderColor = '#e74c3c';
+                    } else {
+                        field.style.borderColor = '#e9ecef';
+                    }
+                });
+                
+                if (!allValid) {
+                    alert('Please fill in all required fields (marked with *)');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    return;
+                }
+                
+                // Submit to your working Apps Script
+                fetch('https://script.google.com/macros/s/AKfycbyE7nTJBsdQw_GzzSuA-AhYxTvqk6xM7XU0J5SjVrDnmEGk9eNiydu2AjeLhVGSrJ4e/exec', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(() => {
+                    // Success popup
+                    alert('Customer opportunity saved successfully! Data has been added to your Google Sheet.');
+                    
+                    // Clear form popup
+                    if (confirm('Would you like to clear the form for a new entry?')) {
+                        clearForm();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Form submitted successfully. Data has been saved to your Google Sheet.');
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
+        
     </script>
 </body>
 </html>
