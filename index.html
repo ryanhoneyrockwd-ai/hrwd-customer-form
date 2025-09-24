@@ -798,18 +798,25 @@
             document.getElementById('job_address').addEventListener('blur', triggerProjectCodeGeneration);
             document.getElementById('city').addEventListener('blur', triggerProjectCodeGeneration);
             
-            // ZIP code lookup
-            document.getElementById('zip').addEventListener('input', function(e) {
-                const zip = e.target.value.trim();
-                const cityField = document.getElementById('city');
-                const stateField = document.getElementById('state');
-                const neighborhoodField = document.getElementById('neighborhood');
+            // ZIP code lookup - complete inline version
+            document.getElementById('zip').addEventListener('input', async function(e) {
+                const zipCode = e.target.value;
+                console.log('ZIP code entered:', zipCode);
                 
-                if (zipDatabase[zip]) {
-                    cityField.value = zipDatabase[zip].city;
-                    stateField.value = zipDatabase[zip].state;
-                    neighborhoodField.value = zipDatabase[zip].neighborhood || '';
-                    triggerProjectCodeGeneration();
+                if (zipCode.length === 5) {
+                    try {
+                        const response = await fetch(`https://api.zippopotam.us/us/${zipCode}`);
+                        const data = await response.json();
+                        
+                        if (data.places && data.places.length > 0) {
+                            const place = data.places[0];
+                            document.getElementById('city').value = place['place name'];
+                            document.getElementById('state').value = place['state abbreviation'];
+                            console.log('City and state auto-filled');
+                        }
+                    } catch (error) {
+                        console.log('Zip lookup failed:', error);
+                    }
                 }
             });
 
