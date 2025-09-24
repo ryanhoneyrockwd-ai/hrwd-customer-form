@@ -457,7 +457,7 @@
                             <option value="">Select Phase</option>
                             <option value="1">Opportunity</option>
                             <option value="2">Quote</option>
-                            <option value="3">Sale</option>
+                            <option value="3">Contract</option>
                             <option value="4">Production</option>
                             <option value="5">Fulfillment</option>
                             <option value="6">Closeout</option>
@@ -805,34 +805,34 @@
                 dealStage.innerHTML = '<option value="">Select Phase First</option>';
                 
                 const stageOptions = {
-                    '1': [
+                    '1': [ // Opportunity
                         { value: '1', text: '1 - Strategic Opportunity Identified' },
-                        { value: '2', text: '2 - Quote Requested' }
+                        { value: '2', text: '2 - Initial Customer Contact Made' },
+                        { value: '3', text: '3 - Needs Assessment Completed' },
+                        { value: '4', text: '4 - Preliminary Proposal Presented' }
                     ],
-                    '2': [
-                        { value: '3', text: '3 - Quote In Progress' },
-                        { value: '4', text: '4 - Quote Review' },
-                        { value: '5', text: '5 - Quote Delivered' },
-                        { value: '6', text: '6 - Quote Follow Up' },
-                        { value: '7', text: '7 - Quote Submitted' }
+                    '2': [ // Quote
+                        { value: '5', text: '5 - Formal Quote Requested' },
+                        { value: '6', text: '6 - Quote in Development' },
+                        { value: '7', text: '7 - Quote Submitted' },
+                        { value: '8', text: '8 - Quote Under Customer Review' }
                     ],
-                    '3': [
-                        { value: '8', text: '8 - Contract Negotiation' },
-                        { value: '9', text: '9 - Contract Signed' },
-                        { value: '10', text: '10 - Deposit Received' },
-                        { value: '11', text: '11 - Final Payment Received' }
+                    '3': [ // Contract
+                        { value: '9', text: '9 - Contract Negotiations' },
+                        { value: '10', text: '10 - Contract Approved' },
+                        { value: '11', text: '11 - Contract Signed' }
                     ],
-                    '4': [
+                    '4': [ // Production
                         { value: '12', text: '12 - Production Scheduled' },
                         { value: '13', text: '13 - In Production' },
                         { value: '14', text: '14 - Production Complete' }
                     ],
-                    '5': [
+                    '5': [ // Fulfillment
                         { value: '15', text: '15 - Shipping Scheduled' },
                         { value: '16', text: '16 - In Transit' },
                         { value: '17', text: '17 - Delivered' }
                     ],
-                    '6': [
+                    '6': [ // Closeout
                         { value: '18', text: '18 - Installation Complete' },
                         { value: '19', text: '19 - Final Invoice Sent' },
                         { value: '20', text: '20 - Project Closed' }
