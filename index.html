@@ -900,12 +900,12 @@
                 // YY = 2-digit year
                 const currentYear = new Date().getFullYear().toString().slice(-2);
                 
-                // CUST = First 3 letters of last name from Customer/Project Name
+                // CUST = First 3 letters of FIRST word from Customer/Project Name
                 let customerCode = '';
                 const nameParts = customer.split(' ');
                 if (nameParts.length > 0) {
-                    const lastName = nameParts[nameParts.length - 1]; // Get last word as last name
-                    customerCode = lastName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
+                    const firstName = nameParts[0]; // Get FIRST word as customer name
+                    customerCode = firstName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
                 }
                 
                 // STRNO = Street number (numeric digits only)
