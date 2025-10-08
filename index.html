@@ -960,12 +960,13 @@
                     if (streetAbbreviations[word]) {
                         result += streetAbbreviations[word];
                     } else {
-                        if (word.length <= 3) {
+                        // Keep short words (1-6 letters) full, only abbreviate longer words
+                        if (word.length <= 6) {
                             result += word.toUpperCase();
-                        } else if (word.length <= 6) {
-                            result += word.substring(0, 4).toUpperCase();
+                        } else if (word.length <= 9) {
+                            result += word.substring(0, 6).toUpperCase();
                         } else {
-                            result += word.substring(0, 5).toUpperCase();
+                            result += word.substring(0, 6).toUpperCase();
                         }
                     }
                 }
