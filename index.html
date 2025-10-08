@@ -370,7 +370,6 @@
             }
         }
         
-        /* Print styles */
         @media print {
             body {
                 background: none;
@@ -392,7 +391,6 @@
             }
         }
         
-        /* High contrast mode support */
         @media (prefers-contrast: high) {
             .form-group input,
             .form-group select,
@@ -405,7 +403,6 @@
             }
         }
         
-        /* Reduced motion support */
         @media (prefers-reduced-motion: reduce) {
             * {
                 animation-duration: 0.01ms !important;
@@ -423,18 +420,15 @@
         </div>
         
         <form class="form-container" id="opportunityForm" autocomplete="on">
-            <!-- Validation Summary -->
             <div id="validationSummary" class="form-validation-summary">
                 <strong>Please correct the following errors:</strong>
                 <ul id="validationList"></ul>
             </div>
             
-            <!-- Success Message -->
             <div id="successMessage" class="success-message">
                 <strong>Success!</strong> Customer opportunity has been saved successfully.
             </div>
             
-            <!-- Basic Information -->
             <div class="section">
                 <h2><span class="section-icon">📋</span>Basic Information</h2>
                 <div class="form-row two-col">
@@ -474,7 +468,6 @@
                 </div>
             </div>
 
-            <!-- Customer Information -->
             <div class="section">
                 <h2><span class="section-icon">👤</span>Customer Information</h2>
                 <div class="form-row">
@@ -546,7 +539,6 @@
                 </div>
             </div>
 
-            <!-- Project Location -->
             <div class="section">
                 <h2><span class="section-icon">📍</span>Project Location</h2>
                 <div class="form-row">
@@ -637,7 +629,6 @@
                 </div>
             </div>
 
-            <!-- Contact Information -->
             <div class="section">
                 <h2><span class="section-icon">📞</span>Contact Information</h2>
                 <div class="form-row three-col">
@@ -659,7 +650,6 @@
                 </div>
             </div>
 
-            <!-- Product Information -->
             <div class="section">
                 <h2><span class="section-icon">🏗️</span>Product Information</h2>
                 <div class="form-row two-col">
@@ -697,7 +687,6 @@
                 </div>
             </div>
 
-            <!-- Financial Information -->
             <div class="section">
                 <h2><span class="section-icon">💰</span>Financial Information</h2>
                 <div class="form-row two-col">
@@ -733,7 +722,6 @@
                 </div>
             </div>
 
-            <!-- Additional Information -->
             <div class="section">
                 <h2><span class="section-icon">📝</span>Additional Information</h2>
                 <div class="form-row">
@@ -782,7 +770,6 @@
                 </div>
             </div>
 
-            <!-- Form Actions -->
             <div class="form-actions">
                 <div>
                     <button type="button" class="btn btn-secondary" id="clearBtn">
@@ -883,7 +870,7 @@
             document.getElementById('quote_price').addEventListener('input', calculateProfitMargin);
             document.getElementById('cost').addEventListener('input', calculateProfitMargin);
             
-            // Project code generation - YY-CUST-STRNO-STRNAMEABBRSUF-CITY3 format
+            // Project code generation with LOT PARSING - YY-CUST-STRNO-STRNAMEABBRSUF-CITY3 format
             function generateProjectCode() {
                 console.log('generateProjectCode called');
                 const customer = document.getElementById('customer').value.trim();
@@ -904,16 +891,37 @@
                 let customerCode = '';
                 const nameParts = customer.split(' ');
                 if (nameParts.length > 0) {
-                    const firstName = nameParts[0]; // Get FIRST word as customer name
+                    const firstName = nameParts[0];
                     customerCode = firstName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
                 }
                 
-                // STRNO = Street number (numeric digits only)
-                const streetNumberMatch = jobAddress.match(/^\d+/);
-                const streetNumber = streetNumberMatch ? streetNumberMatch[0] : '';
+                // Handle different address formats - IMPROVED LOT PARSING
+                let streetNumber = '';
+                let streetName = '';
+                
+                console.log('Parsing address:', jobAddress);
+                
+                // Check for lot numbers with more flexible pattern
+                const lotPattern = /lot\s*#?\s*([a-z0-9]+)/i;
+                const lotMatch = jobAddress.match(lotPattern);
+                
+                console.log('Lot match result:', lotMatch);
+                
+                if (lotMatch) {
+                    // Found a lot number
+                    streetNumber = lotMatch[1].toUpperCase();
+                    // Get everything after the lot identifier as street name
+                    streetName = jobAddress.replace(lotPattern, '').trim();
+                    console.log('Lot address detected - Number:', streetNumber, 'Name:', streetName);
+                } else {
+                    // Traditional street number parsing
+                    const streetNumberMatch = jobAddress.match(/^\d+/);
+                    streetNumber = streetNumberMatch ? streetNumberMatch[0] : 'NA';
+                    streetName = jobAddress.replace(/^\d+\s*/, '');
+                    console.log('Traditional address - Number:', streetNumber, 'Name:', streetName);
+                }
                 
                 // STRNAMEABBRSUF = Normalized street name  
-                let streetName = jobAddress.replace(/^\d+\s*/, ''); // Remove street number
                 streetName = normalizeStreetName(streetName);
                 
                 // CITY3 = 3-letter city code
@@ -922,8 +930,7 @@
                 console.log('Generated parts:', { currentYear, customerCode, streetNumber, streetName, cityCode });
                 
                 if (customerCode && streetName && cityCode) {
-                    // Allow project code even if streetNumber is empty or NA
-                    const projectCode = `${currentYear}-${customerCode}-${streetNumber || 'NA'}-${streetName}-${cityCode}`;
+                    const projectCode = `${currentYear}-${customerCode}-${streetNumber}-${streetName}-${cityCode}`;
                     console.log('Final project code:', projectCode);
                     document.getElementById('project').value = projectCode;
                 }
@@ -936,7 +943,8 @@
                     'lane': 'LN', 'road': 'RD', 'circle': 'CIR', 'court': 'CT',
                     'place': 'PL', 'trail': 'TRL', 'way': 'WAY', 'parkway': 'PKWY',
                     'terrace': 'TER', 'ridge': 'RDG', 'creek': 'CRK', 'crossing': 'XING',
-                    'square': 'SQ', 'plaza': 'PLZ', 'beverly': 'BEV'
+                    'square': 'SQ', 'plaza': 'PLZ', 'beverly': 'BEV', 'lakes': 'LK', 
+                    'lake': 'LK', 'freestone': 'FREE'
                 };
                 
                 let normalized = streetName.toLowerCase()
@@ -1071,7 +1079,6 @@
             // Reset to defaults function
             function resetToDefaults() {
                 clearForm();
-                // Set some default values if needed
                 document.getElementById('phase').value = '1';
                 updateDealStages();
                 document.getElementById('priority_level').value = 'medium';
@@ -1104,13 +1111,13 @@
                 
                 // Validate phone numbers
                 const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
-                const phoneFields = [
+                const phoneValidationFields = [
                     { id: 'contact_phone', name: 'Contact Phone' },
                     { id: 'superintendent_phone', name: 'Superintendent Phone' },
                     { id: 'architect_contact_phone', name: 'Architect Contact Phone' }
                 ];
                 
-                phoneFields.forEach(field => {
+                phoneValidationFields.forEach(field => {
                     const element = document.getElementById(field.id);
                     if (element.value.trim() && !phoneRegex.test(element.value)) {
                         errors.push(`${field.name} must be in format: 123-456-7890`);
@@ -1120,13 +1127,13 @@
                 
                 // Validate email addresses
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                const emailFields = [
+                const emailValidationFields = [
                     { id: 'contact_email', name: 'Contact Email' },
                     { id: 'superintendent_email', name: 'Superintendent Email' },
                     { id: 'architect_contact_email', name: 'Architect Contact Email' }
                 ];
                 
-                emailFields.forEach(field => {
+                emailValidationFields.forEach(field => {
                     const element = document.getElementById(field.id);
                     if (element.value.trim() && !emailRegex.test(element.value)) {
                         errors.push(`${field.name} must be a valid email address`);
@@ -1187,7 +1194,6 @@
             
             document.getElementById('saveAsDraftBtn').addEventListener('click', function(e) {
                 e.preventDefault();
-                // Save as draft functionality could be implemented here
                 alert('Save as Draft functionality would be implemented here.');
             });
             
@@ -1212,7 +1218,7 @@
                 try {
                     const formData = new FormData(e.target);
                     
-                    // Add clean phase text and deal stage text (consistent - no numbers)
+                    // Add clean phase text and deal stage text (NO number prefixes for consistency)
                     const phaseSelect = document.getElementById('phase');
                     const dealStageSelect = document.getElementById('deal_stage');
                     
