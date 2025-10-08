@@ -921,8 +921,9 @@
                 
                 console.log('Generated parts:', { currentYear, customerCode, streetNumber, streetName, cityCode });
                 
-                if (customerCode && streetNumber && streetName && cityCode) {
-                    const projectCode = `${currentYear}-${customerCode}-${streetNumber}-${streetName}-${cityCode}`;
+                if (customerCode && streetName && cityCode) {
+                    // Allow project code even if streetNumber is empty or NA
+                    const projectCode = `${currentYear}-${customerCode}-${streetNumber || 'NA'}-${streetName}-${cityCode}`;
                     console.log('Final project code:', projectCode);
                     document.getElementById('project').value = projectCode;
                 }
