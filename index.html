@@ -370,6 +370,7 @@
             }
         }
         
+        /* Print styles */
         @media print {
             body {
                 background: none;
@@ -391,6 +392,7 @@
             }
         }
         
+        /* High contrast mode support */
         @media (prefers-contrast: high) {
             .form-group input,
             .form-group select,
@@ -403,6 +405,7 @@
             }
         }
         
+        /* Reduced motion support */
         @media (prefers-reduced-motion: reduce) {
             * {
                 animation-duration: 0.01ms !important;
@@ -420,15 +423,18 @@
         </div>
         
         <form class="form-container" id="opportunityForm" autocomplete="on">
+            <!-- Validation Summary -->
             <div id="validationSummary" class="form-validation-summary">
                 <strong>Please correct the following errors:</strong>
                 <ul id="validationList"></ul>
             </div>
             
+            <!-- Success Message -->
             <div id="successMessage" class="success-message">
                 <strong>Success!</strong> Customer opportunity has been saved successfully.
             </div>
             
+            <!-- Basic Information -->
             <div class="section">
                 <h2><span class="section-icon">📋</span>Basic Information</h2>
                 <div class="form-row two-col">
@@ -455,6 +461,7 @@
                             <option value="4">Production</option>
                             <option value="5">Fulfillment</option>
                             <option value="6">Closeout</option>
+                            <option value="7">Inactive</option>
                         </select>
                         <div class="help-text">Current project phase</div>
                     </div>
@@ -468,6 +475,7 @@
                 </div>
             </div>
 
+            <!-- Customer Information -->
             <div class="section">
                 <h2><span class="section-icon">👤</span>Customer Information</h2>
                 <div class="form-row">
@@ -539,6 +547,7 @@
                 </div>
             </div>
 
+            <!-- Project Location -->
             <div class="section">
                 <h2><span class="section-icon">📍</span>Project Location</h2>
                 <div class="form-row">
@@ -605,7 +614,7 @@
                             <option value="SC">South Carolina</option>
                             <option value="SD">South Dakota</option>
                             <option value="TN">Tennessee</option>
-                            <option value="TX">Texas</option>
+                            <option value="TX" selected>Texas</option>
                             <option value="UT">Utah</option>
                             <option value="VT">Vermont</option>
                             <option value="VA">Virginia</option>
@@ -629,6 +638,7 @@
                 </div>
             </div>
 
+            <!-- Contact Information -->
             <div class="section">
                 <h2><span class="section-icon">📞</span>Contact Information</h2>
                 <div class="form-row three-col">
@@ -650,6 +660,7 @@
                 </div>
             </div>
 
+            <!-- Product Information -->
             <div class="section">
                 <h2><span class="section-icon">🏗️</span>Product Information</h2>
                 <div class="form-row two-col">
@@ -687,6 +698,7 @@
                 </div>
             </div>
 
+            <!-- Financial Information -->
             <div class="section">
                 <h2><span class="section-icon">💰</span>Financial Information</h2>
                 <div class="form-row two-col">
@@ -722,6 +734,7 @@
                 </div>
             </div>
 
+            <!-- Additional Information -->
             <div class="section">
                 <h2><span class="section-icon">📝</span>Additional Information</h2>
                 <div class="form-row">
@@ -770,6 +783,7 @@
                 </div>
             </div>
 
+            <!-- Form Actions -->
             <div class="form-actions">
                 <div>
                     <button type="button" class="btn btn-secondary" id="clearBtn">
@@ -797,6 +811,17 @@
             
             // Auto-set today's date
             document.getElementById('date').valueAsDate = new Date();
+            
+            // Status mapping based on Phase (not visible on form, auto-calculated on submit)
+            const statusMap = {
+                '1': 'Pursue',      // Opportunity
+                '2': 'Quoting',     // Quote
+                '3': 'Active',      // Contract
+                '4': 'Active',      // Production
+                '5': 'Active',      // Fulfillment
+                '6': 'Completed',   // Closeout
+                '7': 'Inactive'     // Inactive
+            };
             
             // Update deal stages based on selected phase
             function updateDealStages() {
@@ -837,6 +862,11 @@
                         { value: '18', text: '18 - Installation Complete' },
                         { value: '19', text: '19 - Final Invoice Sent' },
                         { value: '20', text: '20 - Project Closed' }
+                    ],
+                    '7': [ // Inactive
+                        { value: '21', text: '21 - Job Lost' },
+                        { value: '22', text: '22 - Stale Project' },
+                        { value: '23', text: '23 - Job Canceled' }
                     ]
                 };
                 
@@ -870,7 +900,7 @@
             document.getElementById('quote_price').addEventListener('input', calculateProfitMargin);
             document.getElementById('cost').addEventListener('input', calculateProfitMargin);
             
-            // Project code generation with LOT PARSING - YY-CUST-STRNO-STRNAMEABBRSUF-CITY3 format
+            // Project code generation - YY-CUST-STRNO-STRNAMEABBRSUF-CITY3 format
             function generateProjectCode() {
                 console.log('generateProjectCode called');
                 const customer = document.getElementById('customer').value.trim();
@@ -891,37 +921,16 @@
                 let customerCode = '';
                 const nameParts = customer.split(' ');
                 if (nameParts.length > 0) {
-                    const firstName = nameParts[0];
+                    const firstName = nameParts[0]; // Get FIRST word as customer name
                     customerCode = firstName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
                 }
                 
-                // Handle different address formats - IMPROVED LOT PARSING
-                let streetNumber = '';
-                let streetName = '';
-                
-                console.log('Parsing address:', jobAddress);
-                
-                // Check for lot numbers with more flexible pattern
-                const lotPattern = /lot\s*#?\s*([a-z0-9]+)/i;
-                const lotMatch = jobAddress.match(lotPattern);
-                
-                console.log('Lot match result:', lotMatch);
-                
-                if (lotMatch) {
-                    // Found a lot number
-                    streetNumber = lotMatch[1].toUpperCase();
-                    // Get everything after the lot identifier as street name
-                    streetName = jobAddress.replace(lotPattern, '').trim();
-                    console.log('Lot address detected - Number:', streetNumber, 'Name:', streetName);
-                } else {
-                    // Traditional street number parsing
-                    const streetNumberMatch = jobAddress.match(/^\d+/);
-                    streetNumber = streetNumberMatch ? streetNumberMatch[0] : 'NA';
-                    streetName = jobAddress.replace(/^\d+\s*/, '');
-                    console.log('Traditional address - Number:', streetNumber, 'Name:', streetName);
-                }
+                // STRNO = Street number (numeric digits only)
+                const streetNumberMatch = jobAddress.match(/^\d+/);
+                const streetNumber = streetNumberMatch ? streetNumberMatch[0] : '';
                 
                 // STRNAMEABBRSUF = Normalized street name  
+                let streetName = jobAddress.replace(/^\d+\s*/, ''); // Remove street number
                 streetName = normalizeStreetName(streetName);
                 
                 // CITY3 = 3-letter city code
@@ -930,7 +939,8 @@
                 console.log('Generated parts:', { currentYear, customerCode, streetNumber, streetName, cityCode });
                 
                 if (customerCode && streetName && cityCode) {
-                    const projectCode = `${currentYear}-${customerCode}-${streetNumber}-${streetName}-${cityCode}`;
+                    // Allow project code even if streetNumber is empty or NA
+                    const projectCode = `${currentYear}-${customerCode}-${streetNumber || 'NA'}-${streetName}-${cityCode}`;
                     console.log('Final project code:', projectCode);
                     document.getElementById('project').value = projectCode;
                 }
@@ -943,8 +953,7 @@
                     'lane': 'LN', 'road': 'RD', 'circle': 'CIR', 'court': 'CT',
                     'place': 'PL', 'trail': 'TRL', 'way': 'WAY', 'parkway': 'PKWY',
                     'terrace': 'TER', 'ridge': 'RDG', 'creek': 'CRK', 'crossing': 'XING',
-                    'square': 'SQ', 'plaza': 'PLZ', 'beverly': 'BEV', 'lakes': 'LK', 
-                    'lake': 'LK', 'freestone': 'FREE'
+                    'square': 'SQ', 'plaza': 'PLZ', 'beverly': 'BEV'
                 };
                 
                 let normalized = streetName.toLowerCase()
@@ -960,7 +969,7 @@
                     if (streetAbbreviations[word]) {
                         result += streetAbbreviations[word];
                     } else {
-                        // Keep short words (1-6 letters) full, only abbreviate longer words
+                        // Keep short words (6 chars or less) as-is, abbreviate longer ones
                         if (word.length <= 6) {
                             result += word.toUpperCase();
                         } else if (word.length <= 9) {
@@ -971,7 +980,7 @@
                     }
                 }
                 
-                return result.substring(0, 10);
+                return result.substring(0, 12);
             }
             
             // Get 3-letter city code
@@ -982,7 +991,16 @@
                     'garland': 'GAR', 'mckinney': 'MCK', 'denton': 'DEN', 'lewisville': 'LEW',
                     'carrollton': 'CAR', 'flower mound': 'FLW', 'grapevine': 'GRP', 'keller': 'KEL',
                     'southlake': 'STH', 'colleyville': 'COL', 'fairfield': 'FAI', 'austin': 'AUS',
-                    'houston': 'HOU', 'san antonio': 'SAN'
+                    'houston': 'HOU', 'san antonio': 'SAN', 'highland park': 'HPK', 
+                    'university park': 'UPK', 'westlake': 'WLK', 'trophy club': 'TRP',
+                    'prosper': 'PRO', 'celina': 'CEL', 'little elm': 'LTL', 'the colony': 'COL',
+                    'coppell': 'COP', 'euless': 'EUL', 'bedford': 'BED', 'hurst': 'HUR',
+                    'north richland hills': 'NRH', 'richland hills': 'RHL', 'mansfield': 'MAN',
+                    'grand prairie': 'GPR', 'mesquite': 'MES', 'rowlett': 'ROW', 'rockwall': 'RCK',
+                    'heath': 'HTH', 'sunnyvale': 'SUN', 'forney': 'FOR', 'wylie': 'WYL',
+                    'murphy': 'MUR', 'sachse': 'SAC', 'lucas': 'LUC', 'parker': 'PAR',
+                    'fairview': 'FRV', 'princeton': 'PRI', 'lavon': 'LAV', 'nevada': 'NEV',
+                    'fate': 'FAT', 'royse city': 'ROY', 'terrell': 'TER', 'kaufman': 'KAU'
                 };
                 
                 const cityLower = city.toLowerCase();
@@ -997,10 +1015,43 @@
                 '75201': { city: 'Dallas', state: 'TX', neighborhood: 'Downtown' },
                 '75202': { city: 'Dallas', state: 'TX', neighborhood: 'Uptown' },
                 '75204': { city: 'Dallas', state: 'TX', neighborhood: 'Turtle Creek' },
+                '75206': { city: 'Dallas', state: 'TX', neighborhood: 'M Streets/Lakewood' },
+                '75214': { city: 'Dallas', state: 'TX', neighborhood: 'Lakewood' },
+                '75218': { city: 'Dallas', state: 'TX', neighborhood: 'White Rock Lake' },
+                '75220': { city: 'Dallas', state: 'TX', neighborhood: 'Northwest Dallas' },
+                '75229': { city: 'Dallas', state: 'TX', neighborhood: 'North Dallas' },
+                '75230': { city: 'Dallas', state: 'TX', neighborhood: 'Preston Hollow' },
+                '75231': { city: 'Dallas', state: 'TX', neighborhood: 'Lake Highlands' },
+                '75238': { city: 'Dallas', state: 'TX', neighborhood: 'Lake Highlands' },
+                '75240': { city: 'Dallas', state: 'TX', neighborhood: 'Far North Dallas' },
+                '75248': { city: 'Dallas', state: 'TX', neighborhood: 'Far North Dallas' },
+                '75252': { city: 'Dallas', state: 'TX', neighborhood: 'Far North Dallas' },
                 '75013': { city: 'Allen', state: 'TX', neighborhood: 'Central Allen' },
+                '75002': { city: 'Allen', state: 'TX', neighborhood: 'Allen' },
                 '75023': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
+                '75024': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
+                '75025': { city: 'Plano', state: 'TX', neighborhood: 'North Plano' },
+                '75074': { city: 'Plano', state: 'TX', neighborhood: 'East Plano' },
+                '75075': { city: 'Plano', state: 'TX', neighborhood: 'Central Plano' },
+                '75093': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
                 '75033': { city: 'Frisco', state: 'TX', neighborhood: 'Central Frisco' },
-                '76244': { city: 'Keller', state: 'TX', neighborhood: 'Central Keller' }
+                '75034': { city: 'Frisco', state: 'TX', neighborhood: 'West Frisco' },
+                '75035': { city: 'Frisco', state: 'TX', neighborhood: 'North Frisco' },
+                '76244': { city: 'Keller', state: 'TX', neighborhood: 'Central Keller' },
+                '76248': { city: 'Keller', state: 'TX', neighborhood: 'Keller' },
+                '76092': { city: 'Southlake', state: 'TX', neighborhood: 'Southlake' },
+                '76034': { city: 'Colleyville', state: 'TX', neighborhood: 'Colleyville' },
+                '76051': { city: 'Grapevine', state: 'TX', neighborhood: 'Grapevine' },
+                '75077': { city: 'Lewisville', state: 'TX', neighborhood: 'Lewisville/Flower Mound' },
+                '75028': { city: 'Flower Mound', state: 'TX', neighborhood: 'Flower Mound' },
+                '75022': { city: 'Flower Mound', state: 'TX', neighborhood: 'Flower Mound' },
+                '75070': { city: 'McKinney', state: 'TX', neighborhood: 'McKinney' },
+                '75071': { city: 'McKinney', state: 'TX', neighborhood: 'McKinney' },
+                '75069': { city: 'McKinney', state: 'TX', neighborhood: 'McKinney' },
+                '75078': { city: 'Prosper', state: 'TX', neighborhood: 'Prosper' },
+                '75009': { city: 'Celina', state: 'TX', neighborhood: 'Celina' },
+                '76262': { city: 'Trophy Club', state: 'TX', neighborhood: 'Trophy Club' },
+                '76226': { city: 'Argyle', state: 'TX', neighborhood: 'Argyle' }
             };
             
             // ZIP code lookup with neighborhood and project code generation
@@ -1080,6 +1131,7 @@
             // Reset to defaults function
             function resetToDefaults() {
                 clearForm();
+                // Set some default values if needed
                 document.getElementById('phase').value = '1';
                 updateDealStages();
                 document.getElementById('priority_level').value = 'medium';
@@ -1112,13 +1164,13 @@
                 
                 // Validate phone numbers
                 const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
-                const phoneValidationFields = [
+                const phoneFieldsValidation = [
                     { id: 'contact_phone', name: 'Contact Phone' },
                     { id: 'superintendent_phone', name: 'Superintendent Phone' },
                     { id: 'architect_contact_phone', name: 'Architect Contact Phone' }
                 ];
                 
-                phoneValidationFields.forEach(field => {
+                phoneFieldsValidation.forEach(field => {
                     const element = document.getElementById(field.id);
                     if (element.value.trim() && !phoneRegex.test(element.value)) {
                         errors.push(`${field.name} must be in format: 123-456-7890`);
@@ -1128,13 +1180,13 @@
                 
                 // Validate email addresses
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                const emailValidationFields = [
+                const emailFields = [
                     { id: 'contact_email', name: 'Contact Email' },
                     { id: 'superintendent_email', name: 'Superintendent Email' },
                     { id: 'architect_contact_email', name: 'Architect Contact Email' }
                 ];
                 
-                emailValidationFields.forEach(field => {
+                emailFields.forEach(field => {
                     const element = document.getElementById(field.id);
                     if (element.value.trim() && !emailRegex.test(element.value)) {
                         errors.push(`${field.name} must be a valid email address`);
@@ -1195,10 +1247,11 @@
             
             document.getElementById('saveAsDraftBtn').addEventListener('click', function(e) {
                 e.preventDefault();
+                // Save as draft functionality could be implemented here
                 alert('Save as Draft functionality would be implemented here.');
             });
             
-            // Form submission with consistent text extraction
+            // Form submission with Status auto-calculation
             document.getElementById('opportunityForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
@@ -1219,7 +1272,14 @@
                 try {
                     const formData = new FormData(e.target);
                     
-                    // Add clean phase text and deal stage text (NO number prefixes for consistency)
+                    // Get phase value for Status calculation
+                    const phaseValue = document.getElementById('phase').value;
+                    
+                    // Auto-calculate Status based on Phase and add to form data
+                    const status = statusMap[phaseValue] || '';
+                    formData.append('status', status);
+                    
+                    // Add clean phase text and deal stage text (consistent - no numbers)
                     const phaseSelect = document.getElementById('phase');
                     const dealStageSelect = document.getElementById('deal_stage');
                     
