@@ -446,7 +446,7 @@
                     <div class="form-group">
                         <label for="project">Project Code</label>
                         <input type="text" id="project" name="project" placeholder="Auto-generated from customer and address" autocomplete="off">
-                        <div class="help-text">Auto-generated based on customer name and job address, or enter manually</div>
+                        <div class="help-text">Auto-generated: YY-BLD-CUST-STRNO-STRNAME-CITY (includes builder code)</div>
                         <div id="projectCodePreview" class="project-code-preview" style="display: none;"></div>
                     </div>
                 </div>
@@ -900,14 +900,15 @@
             document.getElementById('quote_price').addEventListener('input', calculateProfitMargin);
             document.getElementById('cost').addEventListener('input', calculateProfitMargin);
             
-            // Project code generation - YY-CUST-STRNO-STRNAMEABBRSUF-CITY3 format
+            // Project code generation - YY-BLD-CUST-STRNO-STRNAMEABBRSUF-CITY3 format
             function generateProjectCode() {
                 console.log('generateProjectCode called');
+                const builder = document.getElementById('builder').value.trim();
                 const customer = document.getElementById('customer').value.trim();
                 const jobAddress = document.getElementById('job_address').value.trim();
                 const city = document.getElementById('city').value.trim();
                 
-                console.log('Values for project code:', { customer, jobAddress, city });
+                console.log('Values for project code:', { builder, customer, jobAddress, city });
                 
                 if (!customer || !jobAddress || !city) {
                     console.log('Missing required fields for project code generation');
@@ -916,6 +917,9 @@
                 
                 // YY = 2-digit year
                 const currentYear = new Date().getFullYear().toString().slice(-2);
+                
+                // BLD = 3-letter builder code (or "NOB" for No Builder)
+                const builderCode = getBuilderCode(builder);
                 
                 // CUST = First 3 letters of FIRST word from Customer/Project Name
                 let customerCode = '';
@@ -936,11 +940,11 @@
                 // CITY3 = 3-letter city code
                 const cityCode = getCityCode(city);
                 
-                console.log('Generated parts:', { currentYear, customerCode, streetNumber, streetName, cityCode });
+                console.log('Generated parts:', { currentYear, builderCode, customerCode, streetNumber, streetName, cityCode });
                 
                 if (customerCode && streetName && cityCode) {
                     // Allow project code even if streetNumber is empty or NA
-                    const projectCode = `${currentYear}-${customerCode}-${streetNumber || 'NA'}-${streetName}-${cityCode}`;
+                    const projectCode = `${currentYear}-${builderCode}-${customerCode}-${streetNumber || 'NA'}-${streetName}-${cityCode}`;
                     console.log('Final project code:', projectCode);
                     document.getElementById('project').value = projectCode;
                 }
@@ -1005,6 +1009,70 @@
                 
                 const cityLower = city.toLowerCase();
                 return cityCodes[cityLower] || city.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
+            }
+            
+            // Get 3-letter builder code
+            function getBuilderCode(builder) {
+                // Return "NOB" (No Builder) if empty
+                if (!builder || builder.trim() === '') {
+                    return 'NOB';
+                }
+                
+                // Known builder codes - add new builders here
+                const builderCodes = {
+                    'david lewis': 'DLB',
+                    'david lewis builder': 'DLB',
+                    'david lewis builders': 'DLB',
+                    'dlb': 'DLB',
+                    'tatum brown': 'TAT',
+                    'tatum brown custom homes': 'TAT',
+                    'faulkner-perrin': 'FKP',
+                    'faulkner perrin': 'FKP',
+                    'faulknerperrin': 'FKP',
+                    'venus homes': 'VEN',
+                    'goff custom homes': 'GOF',
+                    'goff': 'GOF',
+                    'shm': 'SHM',
+                    'shm architects': 'SHM',
+                    'john vanderslice': 'JVS',
+                    'vanderslice': 'JVS',
+                    'rob lara': 'RLA',
+                    'lara': 'RLA',
+                    'brandon bush': 'BBU',
+                    'bush': 'BBU',
+                    'custom homes of texas': 'CHT',
+                    'john davis': 'JDA',
+                    'davis': 'JDA',
+                    'daigin': 'DAI',
+                    'three arch architects': 'TAA',
+                    'three arch': 'TAA',
+                    'greth residence': 'GRE',
+                    'balaji residence': 'BAL'
+                };
+                
+                const builderLower = builder.toLowerCase().trim();
+                
+                // Check if we have a known code
+                if (builderCodes[builderLower]) {
+                    return builderCodes[builderLower];
+                }
+                
+                // Generate code from builder name (first 3 letters of first word, or initials if multi-word)
+                const words = builderLower.split(/\s+/);
+                if (words.length >= 2) {
+                    // Multi-word: use first letter of first two words + first letter of last word
+                    // e.g., "New Builder Co" = "NBC"
+                    let code = words[0][0] + words[1][0];
+                    if (words.length > 2) {
+                        code += words[words.length - 1][0];
+                    } else {
+                        code += words[1][1] || words[0][1] || 'X';
+                    }
+                    return code.toUpperCase();
+                } else {
+                    // Single word: use first 3 letters
+                    return builder.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
+                }
             }
             
             // DFW ZIP code database with neighborhoods
@@ -1089,6 +1157,7 @@
             });
             
             // Project code generation event listeners
+            document.getElementById('builder').addEventListener('blur', generateProjectCode);
             document.getElementById('customer').addEventListener('blur', generateProjectCode);
             document.getElementById('job_address').addEventListener('blur', generateProjectCode);
             document.getElementById('city').addEventListener('blur', generateProjectCode);
@@ -1296,7 +1365,7 @@
                     // Add timestamp
                     formData.append('timestamp', new Date().toISOString());
                     
-                    await fetch('https://script.google.com/macros/s/AKfycbxbNDuP6zPU3IhcljW7-uk28UNfMUCgAEIHL-H5iL_qTVImcHnXHuMt-uoitIDDofsE/exec', {
+                    await fetch('https://script.google.com/macros/s/AKfycbyCbq4Iqv4D_0-_JK4A1qj5mI7SivxSIJ0uN8FmiVSOuk4nRqaH2uVWF6Qggy5G08rW/exec', {
                         method: 'POST',
                         mode: 'no-cors',
                         body: formData
