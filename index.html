@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honey Rock Customer Opportunity Intake Form</title>
+    <title>Honey Rock Customer Opportunity Form</title>
     <style>
         * {
             margin: 0;
@@ -47,13 +47,13 @@
         }
         
         .header-logo {
+            max-width: 200px;
             max-height: 80px;
-            max-width: 250px;
             margin-bottom: 15px;
             background: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         
         .form-container {
@@ -428,8 +428,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="honey-rock-logo.png" alt="Honey Rock Window & Door Logo" class="header-logo">
-            <h1>🏠 Honey Rock Customer Opportunity</h1>
+            <img src="https://ryanhoneyrockwd-ai.github.io/hrwd-customer-form/honey-rock-logo.png" alt="Honey Rock Window & Door Logo" class="header-logo">
+            <h1>Honey Rock Customer Opportunity</h1>
             <p>Window & Door Distribution | New Customer Intake Form</p>
         </div>
         
@@ -456,8 +456,8 @@
                     </div>
                     <div class="form-group">
                         <label for="project">Project Code</label>
-                        <input type="text" id="project" name="project" placeholder="Auto-generated from customer and address" autocomplete="off">
-                        <div class="help-text">Auto-generated: YY-BLD-CUST-STRNO-STRNAME-CITY (includes builder code)</div>
+                        <input type="text" id="project" name="project" placeholder="Auto-generated: BLD-CUST-STRNO-STRNAME" autocomplete="off">
+                        <div class="help-text">Auto-generated from builder, customer, and address</div>
                         <div id="projectCodePreview" class="project-code-preview" style="display: none;"></div>
                     </div>
                 </div>
@@ -472,7 +472,6 @@
                             <option value="4">Production</option>
                             <option value="5">Fulfillment</option>
                             <option value="6">Closeout</option>
-                            <option value="7">Inactive</option>
                         </select>
                         <div class="help-text">Current project phase</div>
                     </div>
@@ -493,7 +492,7 @@
                     <div class="form-group">
                         <label for="customer">Customer/Project Name <span class="required">*</span></label>
                         <input type="text" id="customer" name="customer" placeholder="e.g., Smith Residence" required autocomplete="organization">
-                        <div class="help-text">Primary project identifier name</div>
+                        <div class="help-text">Primary project identifier name (first word used for project code)</div>
                     </div>
                 </div>
                 <div class="form-row">
@@ -506,12 +505,12 @@
                 <div class="form-row two-col">
                     <div class="form-group">
                         <label for="builder">Builder</label>
-                        <input type="text" id="builder" name="builder" placeholder="e.g., David Lewis" autocomplete="organization">
-                        <div class="help-text">Primary builder or construction company</div>
+                        <input type="text" id="builder" name="builder" placeholder="e.g., Tatum Brown, David Lewis" autocomplete="organization">
+                        <div class="help-text">Primary builder (used for project code: TBR, DLB, etc.)</div>
                     </div>
                     <div class="form-group">
                         <label for="architect">Architect</label>
-                        <input type="text" id="architect" name="architect" placeholder="e.g., Philip Newburn" autocomplete="organization">
+                        <input type="text" id="architect" name="architect" placeholder="e.g., SHM Architects" autocomplete="organization">
                         <div class="help-text">Project architect or design firm</div>
                     </div>
                 </div>
@@ -549,13 +548,6 @@
                         <div class="help-text">Architect contact email</div>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="po_number">PO Number</label>
-                        <input type="text" id="po_number" name="po_number" placeholder="Purchase Order Number" autocomplete="off">
-                        <div class="help-text">Purchase order reference number</div>
-                    </div>
-                </div>
             </div>
 
             <!-- Project Location -->
@@ -564,8 +556,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="job_address">Job Address <span class="required">*</span></label>
-                        <input type="text" id="job_address" name="job_address" placeholder="e.g., 1233 Shady Oaks" required autocomplete="street-address">
-                        <div class="help-text">Physical project location address</div>
+                        <input type="text" id="job_address" name="job_address" placeholder="e.g., 5234 Ravine" required autocomplete="street-address">
+                        <div class="help-text">Street number and name (used for project code)</div>
                     </div>
                 </div>
                 <div class="form-row three-col">
@@ -823,17 +815,6 @@
             // Auto-set today's date
             document.getElementById('date').valueAsDate = new Date();
             
-            // Status mapping based on Phase (not visible on form, auto-calculated on submit)
-            const statusMap = {
-                '1': 'Pursue',      // Opportunity
-                '2': 'Quoting',     // Quote
-                '3': 'Active',      // Contract
-                '4': 'Active',      // Production
-                '5': 'Active',      // Fulfillment
-                '6': 'Completed',   // Closeout
-                '7': 'Inactive'     // Inactive
-            };
-            
             // Update deal stages based on selected phase
             function updateDealStages() {
                 const phase = document.getElementById('phase').value;
@@ -873,11 +854,6 @@
                         { value: '18', text: '18 - Installation Complete' },
                         { value: '19', text: '19 - Final Invoice Sent' },
                         { value: '20', text: '20 - Project Closed' }
-                    ],
-                    '7': [ // Inactive
-                        { value: '21', text: '21 - Job Lost' },
-                        { value: '22', text: '22 - Stale Project' },
-                        { value: '23', text: '23 - Job Canceled' }
                     ]
                 };
                 
@@ -911,32 +887,61 @@
             document.getElementById('quote_price').addEventListener('input', calculateProfitMargin);
             document.getElementById('cost').addEventListener('input', calculateProfitMargin);
             
-            // Project code generation - YY-BLD-CUST-STRNO-STRNAMEABBRSUF-CITY3 format
+            // Builder codes mapping
+            const builderCodes = {
+                'tatum brown': 'TBR',
+                'david lewis': 'DLB',
+                'david lewis builder': 'DLB',
+                'c bowen': 'CBH',
+                'c bowen custom homes': 'CBH',
+                'bowen': 'CBH',
+                'astrea': 'AST',
+                'astrea development': 'AST',
+                'barringer': 'BAR',
+                'barringer homes': 'BAR',
+                'faulkner': 'FPR',
+                'faulkner-perrin': 'FPR',
+                'faulkner perrin': 'FPR'
+            };
+            
+            // Get builder code from builder name
+            function getBuilderCode(builder) {
+                const builderLower = builder.toLowerCase().trim();
+                
+                // Check for exact or partial match in our codes
+                for (const [key, code] of Object.entries(builderCodes)) {
+                    if (builderLower.includes(key) || key.includes(builderLower)) {
+                        return code;
+                    }
+                }
+                
+                // Fallback: first 3 letters of first word
+                const firstWord = builder.split(' ')[0];
+                return firstWord.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
+            }
+            
+            // Project code generation - BLD-CUST-STRNO-STRNAME format
             function generateProjectCode() {
                 console.log('generateProjectCode called');
                 const builder = document.getElementById('builder').value.trim();
                 const customer = document.getElementById('customer').value.trim();
                 const jobAddress = document.getElementById('job_address').value.trim();
-                const city = document.getElementById('city').value.trim();
                 
-                console.log('Values for project code:', { builder, customer, jobAddress, city });
+                console.log('Values for project code:', { builder, customer, jobAddress });
                 
-                if (!customer || !jobAddress || !city) {
+                if (!builder || !customer || !jobAddress) {
                     console.log('Missing required fields for project code generation');
                     return;
                 }
                 
-                // YY = 2-digit year
-                const currentYear = new Date().getFullYear().toString().slice(-2);
-                
-                // BLD = 3-letter builder code (or "NOB" for No Builder)
+                // BLD = Builder code (3 letters)
                 const builderCode = getBuilderCode(builder);
                 
                 // CUST = First 3 letters of FIRST word from Customer/Project Name
                 let customerCode = '';
                 const nameParts = customer.split(' ');
                 if (nameParts.length > 0) {
-                    const firstName = nameParts[0]; // Get FIRST word as customer name
+                    const firstName = nameParts[0];
                     customerCode = firstName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
                 }
                 
@@ -944,18 +949,15 @@
                 const streetNumberMatch = jobAddress.match(/^\d+/);
                 const streetNumber = streetNumberMatch ? streetNumberMatch[0] : '';
                 
-                // STRNAMEABBRSUF = Normalized street name  
+                // STRNAME = Normalized street name  
                 let streetName = jobAddress.replace(/^\d+\s*/, ''); // Remove street number
                 streetName = normalizeStreetName(streetName);
                 
-                // CITY3 = 3-letter city code
-                const cityCode = getCityCode(city);
+                console.log('Generated parts:', { builderCode, customerCode, streetNumber, streetName });
                 
-                console.log('Generated parts:', { currentYear, builderCode, customerCode, streetNumber, streetName, cityCode });
-                
-                if (customerCode && streetName && cityCode) {
+                if (builderCode && customerCode && streetName) {
                     // Allow project code even if streetNumber is empty or NA
-                    const projectCode = `${currentYear}-${builderCode}-${customerCode}-${streetNumber || 'NA'}-${streetName}-${cityCode}`;
+                    const projectCode = `${builderCode}-${customerCode}-${streetNumber || 'NA'}-${streetName}`;
                     console.log('Final project code:', projectCode);
                     document.getElementById('project').value = projectCode;
                 }
@@ -984,106 +986,17 @@
                     if (streetAbbreviations[word]) {
                         result += streetAbbreviations[word];
                     } else {
-                        // Keep short words (6 chars or less) as-is, abbreviate longer ones
-                        if (word.length <= 6) {
+                        if (word.length <= 3) {
                             result += word.toUpperCase();
-                        } else if (word.length <= 9) {
-                            result += word.substring(0, 6).toUpperCase();
+                        } else if (word.length <= 6) {
+                            result += word.substring(0, 4).toUpperCase();
                         } else {
-                            result += word.substring(0, 6).toUpperCase();
+                            result += word.substring(0, 5).toUpperCase();
                         }
                     }
                 }
                 
-                return result.substring(0, 12);
-            }
-            
-            // Get 3-letter city code
-            function getCityCode(city) {
-                const cityCodes = {
-                    'dallas': 'DAL', 'fort worth': 'FTW', 'plano': 'PLN', 'frisco': 'FRI',
-                    'allen': 'ALL', 'richardson': 'RIC', 'irving': 'IRV', 'arlington': 'ARL',
-                    'garland': 'GAR', 'mckinney': 'MCK', 'denton': 'DEN', 'lewisville': 'LEW',
-                    'carrollton': 'CAR', 'flower mound': 'FLW', 'grapevine': 'GRP', 'keller': 'KEL',
-                    'southlake': 'STH', 'colleyville': 'COL', 'fairfield': 'FAI', 'austin': 'AUS',
-                    'houston': 'HOU', 'san antonio': 'SAN', 'highland park': 'HPK', 
-                    'university park': 'UPK', 'westlake': 'WLK', 'trophy club': 'TRP',
-                    'prosper': 'PRO', 'celina': 'CEL', 'little elm': 'LTL', 'the colony': 'COL',
-                    'coppell': 'COP', 'euless': 'EUL', 'bedford': 'BED', 'hurst': 'HUR',
-                    'north richland hills': 'NRH', 'richland hills': 'RHL', 'mansfield': 'MAN',
-                    'grand prairie': 'GPR', 'mesquite': 'MES', 'rowlett': 'ROW', 'rockwall': 'RCK',
-                    'heath': 'HTH', 'sunnyvale': 'SUN', 'forney': 'FOR', 'wylie': 'WYL',
-                    'murphy': 'MUR', 'sachse': 'SAC', 'lucas': 'LUC', 'parker': 'PAR',
-                    'fairview': 'FRV', 'princeton': 'PRI', 'lavon': 'LAV', 'nevada': 'NEV',
-                    'fate': 'FAT', 'royse city': 'ROY', 'terrell': 'TER', 'kaufman': 'KAU'
-                };
-                
-                const cityLower = city.toLowerCase();
-                return cityCodes[cityLower] || city.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
-            }
-            
-            // Get 3-letter builder code
-            function getBuilderCode(builder) {
-                // Return "NOB" (No Builder) if empty
-                if (!builder || builder.trim() === '') {
-                    return 'NOB';
-                }
-                
-                // Known builder codes - add new builders here
-                const builderCodes = {
-                    'david lewis': 'DLB',
-                    'david lewis builder': 'DLB',
-                    'david lewis builders': 'DLB',
-                    'dlb': 'DLB',
-                    'tatum brown': 'TAT',
-                    'tatum brown custom homes': 'TAT',
-                    'faulkner-perrin': 'FKP',
-                    'faulkner perrin': 'FKP',
-                    'faulknerperrin': 'FKP',
-                    'venus homes': 'VEN',
-                    'goff custom homes': 'GOF',
-                    'goff': 'GOF',
-                    'shm': 'SHM',
-                    'shm architects': 'SHM',
-                    'john vanderslice': 'JVS',
-                    'vanderslice': 'JVS',
-                    'rob lara': 'RLA',
-                    'lara': 'RLA',
-                    'brandon bush': 'BBU',
-                    'bush': 'BBU',
-                    'custom homes of texas': 'CHT',
-                    'john davis': 'JDA',
-                    'davis': 'JDA',
-                    'daigin': 'DAI',
-                    'three arch architects': 'TAA',
-                    'three arch': 'TAA',
-                    'greth residence': 'GRE',
-                    'balaji residence': 'BAL'
-                };
-                
-                const builderLower = builder.toLowerCase().trim();
-                
-                // Check if we have a known code
-                if (builderCodes[builderLower]) {
-                    return builderCodes[builderLower];
-                }
-                
-                // Generate code from builder name (first 3 letters of first word, or initials if multi-word)
-                const words = builderLower.split(/\s+/);
-                if (words.length >= 2) {
-                    // Multi-word: use first letter of first two words + first letter of last word
-                    // e.g., "New Builder Co" = "NBC"
-                    let code = words[0][0] + words[1][0];
-                    if (words.length > 2) {
-                        code += words[words.length - 1][0];
-                    } else {
-                        code += words[1][1] || words[0][1] || 'X';
-                    }
-                    return code.toUpperCase();
-                } else {
-                    // Single word: use first 3 letters
-                    return builder.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
-                }
+                return result.substring(0, 10);
             }
             
             // DFW ZIP code database with neighborhoods
@@ -1094,43 +1007,11 @@
                 '75201': { city: 'Dallas', state: 'TX', neighborhood: 'Downtown' },
                 '75202': { city: 'Dallas', state: 'TX', neighborhood: 'Uptown' },
                 '75204': { city: 'Dallas', state: 'TX', neighborhood: 'Turtle Creek' },
-                '75206': { city: 'Dallas', state: 'TX', neighborhood: 'M Streets/Lakewood' },
-                '75214': { city: 'Dallas', state: 'TX', neighborhood: 'Lakewood' },
-                '75218': { city: 'Dallas', state: 'TX', neighborhood: 'White Rock Lake' },
                 '75220': { city: 'Dallas', state: 'TX', neighborhood: 'Northwest Dallas' },
-                '75229': { city: 'Dallas', state: 'TX', neighborhood: 'North Dallas' },
-                '75230': { city: 'Dallas', state: 'TX', neighborhood: 'Preston Hollow' },
-                '75231': { city: 'Dallas', state: 'TX', neighborhood: 'Lake Highlands' },
-                '75238': { city: 'Dallas', state: 'TX', neighborhood: 'Lake Highlands' },
-                '75240': { city: 'Dallas', state: 'TX', neighborhood: 'Far North Dallas' },
-                '75248': { city: 'Dallas', state: 'TX', neighborhood: 'Far North Dallas' },
-                '75252': { city: 'Dallas', state: 'TX', neighborhood: 'Far North Dallas' },
                 '75013': { city: 'Allen', state: 'TX', neighborhood: 'Central Allen' },
-                '75002': { city: 'Allen', state: 'TX', neighborhood: 'Allen' },
                 '75023': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
-                '75024': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
-                '75025': { city: 'Plano', state: 'TX', neighborhood: 'North Plano' },
-                '75074': { city: 'Plano', state: 'TX', neighborhood: 'East Plano' },
-                '75075': { city: 'Plano', state: 'TX', neighborhood: 'Central Plano' },
-                '75093': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
                 '75033': { city: 'Frisco', state: 'TX', neighborhood: 'Central Frisco' },
-                '75034': { city: 'Frisco', state: 'TX', neighborhood: 'West Frisco' },
-                '75035': { city: 'Frisco', state: 'TX', neighborhood: 'North Frisco' },
-                '76244': { city: 'Keller', state: 'TX', neighborhood: 'Central Keller' },
-                '76248': { city: 'Keller', state: 'TX', neighborhood: 'Keller' },
-                '76092': { city: 'Southlake', state: 'TX', neighborhood: 'Southlake' },
-                '76034': { city: 'Colleyville', state: 'TX', neighborhood: 'Colleyville' },
-                '76051': { city: 'Grapevine', state: 'TX', neighborhood: 'Grapevine' },
-                '75077': { city: 'Lewisville', state: 'TX', neighborhood: 'Lewisville/Flower Mound' },
-                '75028': { city: 'Flower Mound', state: 'TX', neighborhood: 'Flower Mound' },
-                '75022': { city: 'Flower Mound', state: 'TX', neighborhood: 'Flower Mound' },
-                '75070': { city: 'McKinney', state: 'TX', neighborhood: 'McKinney' },
-                '75071': { city: 'McKinney', state: 'TX', neighborhood: 'McKinney' },
-                '75069': { city: 'McKinney', state: 'TX', neighborhood: 'McKinney' },
-                '75078': { city: 'Prosper', state: 'TX', neighborhood: 'Prosper' },
-                '75009': { city: 'Celina', state: 'TX', neighborhood: 'Celina' },
-                '76262': { city: 'Trophy Club', state: 'TX', neighborhood: 'Trophy Club' },
-                '76226': { city: 'Argyle', state: 'TX', neighborhood: 'Argyle' }
+                '76244': { city: 'Keller', state: 'TX', neighborhood: 'Central Keller' }
             };
             
             // ZIP code lookup with neighborhood and project code generation
@@ -1171,7 +1052,6 @@
             document.getElementById('builder').addEventListener('blur', generateProjectCode);
             document.getElementById('customer').addEventListener('blur', generateProjectCode);
             document.getElementById('job_address').addEventListener('blur', generateProjectCode);
-            document.getElementById('city').addEventListener('blur', generateProjectCode);
             
             // Phone number formatting
             function formatPhoneNumber(input) {
@@ -1244,13 +1124,13 @@
                 
                 // Validate phone numbers
                 const phoneRegex = /^\d{3}-\d{3}-\d{4}$/;
-                const phoneFieldsValidation = [
+                const phoneFields = [
                     { id: 'contact_phone', name: 'Contact Phone' },
                     { id: 'superintendent_phone', name: 'Superintendent Phone' },
                     { id: 'architect_contact_phone', name: 'Architect Contact Phone' }
                 ];
                 
-                phoneFieldsValidation.forEach(field => {
+                phoneFields.forEach(field => {
                     const element = document.getElementById(field.id);
                     if (element.value.trim() && !phoneRegex.test(element.value)) {
                         errors.push(`${field.name} must be in format: 123-456-7890`);
@@ -1331,7 +1211,7 @@
                 alert('Save as Draft functionality would be implemented here.');
             });
             
-            // Form submission with Status auto-calculation
+            // Form submission with consistent text extraction
             document.getElementById('opportunityForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
@@ -1352,13 +1232,6 @@
                 try {
                     const formData = new FormData(e.target);
                     
-                    // Get phase value for Status calculation
-                    const phaseValue = document.getElementById('phase').value;
-                    
-                    // Auto-calculate Status based on Phase and add to form data
-                    const status = statusMap[phaseValue] || '';
-                    formData.append('status', status);
-                    
                     // Add clean phase text and deal stage text (consistent - no numbers)
                     const phaseSelect = document.getElementById('phase');
                     const dealStageSelect = document.getElementById('deal_stage');
@@ -1376,7 +1249,7 @@
                     // Add timestamp
                     formData.append('timestamp', new Date().toISOString());
                     
-                    await fetch('https://script.google.com/macros/s/AKfycbxbNDuP6zPU3IhcljW7-uk28UNfMUCgAEIHL-H5iL_qTVImcHnXHuMt-uoitIDDofsE/exec', {
+                    await fetch('https://script.google.com/macros/s/AKfycbyCbq4Iqv4D_0-_JK4A1qj5mI7SivxSIJ0uN8FmiVSOuk4nRqaH2uVWF6Qggy5G08rW/exec', {
                         method: 'POST',
                         mode: 'no-cors',
                         body: formData
