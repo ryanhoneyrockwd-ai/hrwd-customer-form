@@ -434,6 +434,9 @@
         </div>
         
         <form class="form-container" id="opportunityForm" autocomplete="on">
+            <!-- Hidden status field - auto-calculated from Phase -->
+            <input type="hidden" id="status" name="status" value="">
+            
             <!-- Validation Summary -->
             <div id="validationSummary" class="form-validation-summary">
                 <strong>Please correct the following errors:</strong>
@@ -872,6 +875,26 @@
             }
             
             document.getElementById('phase').addEventListener('change', updateDealStages);
+            
+            // Calculate status based on phase
+            function updateStatus() {
+                const phase = document.getElementById('phase').value;
+                let status = '';
+                
+                if (phase === '1' || phase === '2') {
+                    status = 'Quoting';
+                } else if (phase === '3' || phase === '4' || phase === '5') {
+                    status = 'Active';
+                } else if (phase === '6') {
+                    status = 'Closeout';
+                } else if (phase === '7') {
+                    status = 'Inactive';
+                }
+                
+                document.getElementById('status').value = status;
+            }
+            
+            document.getElementById('phase').addEventListener('change', updateStatus);
             
             // Calculate profit and margin
             function calculateProfitMargin() {
