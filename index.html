@@ -924,7 +924,11 @@
                 'barringer homes': 'BAR',
                 'faulkner': 'FPR',
                 'faulkner-perrin': 'FPR',
-                'faulkner perrin': 'FPR'
+                'faulkner perrin': 'FPR',
+                'knox built': 'KNX',
+                'knox built construction': 'KNX',
+                'knox-built': 'KNX',
+                'knx': 'KNX'
             };
             
             // Get builder code from builder name
@@ -968,12 +972,20 @@
                     customerCode = firstName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
                 }
                 
-                // STRNO = Street number (numeric digits only)
+                // STRNO = Street number (numeric digits only), or lot designation
+                let streetNumber = '';
+                const lotMatch = jobAddress.match(/^lot\s+([A-Za-z0-9]+)/i);
                 const streetNumberMatch = jobAddress.match(/^\d+/);
-                const streetNumber = streetNumberMatch ? streetNumberMatch[0] : '';
+                if (lotMatch) {
+                    streetNumber = 'LOT' + lotMatch[1].toUpperCase();
+                } else if (streetNumberMatch) {
+                    streetNumber = streetNumberMatch[0];
+                }
                 
                 // STRNAME = Normalized street name  
-                let streetName = jobAddress.replace(/^\d+\s*/, ''); // Remove street number
+                let streetName = lotMatch 
+                    ? jobAddress.replace(/^lot\s+[A-Za-z0-9]+\s*/i, '') 
+                    : jobAddress.replace(/^\d+\s*/, '');
                 streetName = normalizeStreetName(streetName);
                 
                 console.log('Generated parts:', { builderCode, customerCode, streetNumber, streetName });
@@ -1034,7 +1046,8 @@
                 '75013': { city: 'Allen', state: 'TX', neighborhood: 'Central Allen' },
                 '75023': { city: 'Plano', state: 'TX', neighborhood: 'West Plano' },
                 '75033': { city: 'Frisco', state: 'TX', neighborhood: 'Central Frisco' },
-                '76244': { city: 'Keller', state: 'TX', neighborhood: 'Central Keller' }
+                '76244': { city: 'Keller', state: 'TX', neighborhood: 'Central Keller' },
+                '75840': { city: 'Fairfield', state: 'TX', neighborhood: 'Freestone Lake & Golf Club' }
             };
             
             // ZIP code lookup with neighborhood and project code generation
@@ -1272,7 +1285,7 @@
                     // Add timestamp
                     formData.append('timestamp', new Date().toISOString());
                     
-                    await fetch('https://script.google.com/macros/s/AKfycbxbNDuP6zPU3IhcljW7-uk28UNfMUCgAEIHL-H5iL_qTVImcHnXHuMt-uoitIDDofsE/exec', {
+                    await fetch('https://script.google.com/macros/s/AKfycbyCbq4Iqv4D_0-_JK4A1qj5mI7SivxSIJ0uN8FmiVSOuk4nRqaH2uVWF6Qggy5G08rW/exec', {
                         method: 'POST',
                         mode: 'no-cors',
                         body: formData
