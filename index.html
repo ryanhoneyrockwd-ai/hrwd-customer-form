@@ -881,12 +881,14 @@
                 const phase = document.getElementById('phase').value;
                 let status = '';
                 
-                if (phase === '1' || phase === '2') {
+               if (phase === '1') {
+                    status = 'Pursue';
+                } else if (phase === '2') {
                     status = 'Quoting';
                 } else if (phase === '3' || phase === '4' || phase === '5') {
                     status = 'Active';
                 } else if (phase === '6') {
-                    status = 'Closeout';
+                    status = 'Completed';
                 } else if (phase === '7') {
                     status = 'Inactive';
                 }
@@ -1266,6 +1268,9 @@
                 submitBtn.disabled = true;
                 
                 try {
+                    const phaseValue = document.getElementById('phase').value;
+                    const statusValues = {'1': 'Pursue', '2': 'Quoting', '3': 'Active', '4': 'Active', '5': 'Active', '6': 'Completed', '7': 'Inactive'};
+                    document.getElementById('status').value = statusValues[phaseValue] || '';
                     const formData = new FormData(e.target);
                     
                     // Add clean phase text and deal stage text (consistent - no numbers)
