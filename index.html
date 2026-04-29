@@ -459,8 +459,8 @@
                     </div>
                     <div class="form-group">
                         <label for="project">Project Code</label>
-                        <input type="text" id="project" name="project" placeholder="Auto-generated: BLD-CUST-STRNO-STRNAME" autocomplete="off">
-                        <div class="help-text">Auto-generated from builder, customer, and address</div>
+                        <input type="text" id="project" name="project" placeholder="Auto-generated: BLD_CustName_LOC#" autocomplete="off">
+                        <div class="help-text">Auto-generated from builder, CustName, and address (street # or lot designator)</div>
                         <div id="projectCodePreview" class="project-code-preview" style="display: none;"></div>
                     </div>
                 </div>
@@ -495,7 +495,7 @@
                     <div class="form-group">
                         <label for="customer">Customer/Project Name <span class="required">*</span></label>
                         <input type="text" id="customer" name="customer" placeholder="e.g., Smith Residence" required autocomplete="organization">
-                        <div class="help-text">Primary project identifier name (first word used for project code)</div>
+                        <div class="help-text">Primary project identifier name (display only — does NOT feed Project Code; CustName field below does)</div>
                     </div>
                 </div>
                 <div class="form-row">
@@ -503,6 +503,13 @@
                         <label for="customer_names">Customer Name(s)</label>
                         <input type="text" id="customer_names" name="customer_names" placeholder="e.g., Mike & Amy Presley" autocomplete="name">
                         <div class="help-text">Actual customer names (different from project name if applicable)</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cust_name">CustName <span class="required">*</span></label>
+                        <input type="text" id="cust_name" name="cust_name" placeholder="e.g., Momin, JDavis, PaTodd, BartoshKalka" required maxlength="12" pattern="[A-Z][A-Za-z0-9]{0,11}" autocomplete="off">
+                        <div class="help-text">Short customer-code identifier (≤12 chars, CamelCase). 4-tier ladder: LastName → 1Init+LastName → 2Init+LastName → 1Init+LastName+#. Pre-resolved before the form (by skill or by you). Used in Job_Code and all filenames.</div>
                     </div>
                 </div>
                 <div class="form-row two-col">
@@ -559,8 +566,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="job_address">Job Address <span class="required">*</span></label>
-                        <input type="text" id="job_address" name="job_address" placeholder="e.g., 5234 Ravine" required autocomplete="street-address">
-                        <div class="help-text">Street number and name (used for project code)</div>
+                        <input type="text" id="job_address" name="job_address" placeholder="e.g., 5234 Ravine, or Lot D15 Freelake" required autocomplete="street-address">
+                        <div class="help-text">Street number or lot designator (e.g., 5234 Ravine, Lot D15) — first numeric/lot token used for LOC# in project code</div>
                     </div>
                 </div>
                 <div class="form-row three-col">
@@ -949,58 +956,44 @@
                 return firstWord.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
             }
             
-            // Project code generation - BLD-CUST-STRNO-STRNAME format
+            // Project code generation — BLD_CustName_LOC# format (042926 customer-code convention)
             function generateProjectCode() {
                 console.log('generateProjectCode called');
                 const builder = document.getElementById('builder').value.trim();
-                const customer = document.getElementById('customer').value.trim();
+                const custName = document.getElementById('cust_name').value.trim();
                 const jobAddress = document.getElementById('job_address').value.trim();
-                
-                console.log('Values for project code:', { builder, customer, jobAddress });
-                
-                if (!builder || !customer || !jobAddress) {
+
+                console.log('Values for project code:', { builder, custName, jobAddress });
+
+                if (!builder || !custName || !jobAddress) {
                     console.log('Missing required fields for project code generation');
                     return;
                 }
-                
+
                 // BLD = Builder code (3 letters)
                 const builderCode = getBuilderCode(builder);
-                
-                // CUST = First 3 letters of FIRST word from Customer/Project Name
-                let customerCode = '';
-                const nameParts = customer.split(' ');
-                if (nameParts.length > 0) {
-                    const firstName = nameParts[0];
-                    customerCode = firstName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
-                }
-                
-                // STRNO = Street number (numeric digits only), or lot designation
-                let streetNumber = '';
+
+                // LOC# = street number (numeric) OR lot designator (D15, J5, LOT12) — no street name
+                let locNum = '';
                 const lotMatch = jobAddress.match(/^lot\s+([A-Za-z0-9]+)/i);
                 const streetNumberMatch = jobAddress.match(/^\d+/);
                 if (lotMatch) {
-                    streetNumber = 'LOT' + lotMatch[1].toUpperCase();
+                    locNum = lotMatch[1].toUpperCase();
                 } else if (streetNumberMatch) {
-                    streetNumber = streetNumberMatch[0];
+                    locNum = streetNumberMatch[0];
                 }
-                
-                // STRNAME = Normalized street name  
-                let streetName = lotMatch 
-                    ? jobAddress.replace(/^lot\s+[A-Za-z0-9]+\s*/i, '') 
-                    : jobAddress.replace(/^\d+\s*/, '');
-                streetName = normalizeStreetName(streetName);
-                
-                console.log('Generated parts:', { builderCode, customerCode, streetNumber, streetName });
-                
-                if (builderCode && customerCode && streetName) {
-                    // Allow project code even if streetNumber is empty or NA
-                    const projectCode = `${builderCode}-${customerCode}-${streetNumber || 'NA'}-${streetName}`;
+
+                console.log('Generated parts:', { builderCode, custName, locNum });
+
+                if (builderCode && custName && locNum) {
+                    const projectCode = `${builderCode}_${custName}_${locNum}`;
                     console.log('Final project code:', projectCode);
                     document.getElementById('project').value = projectCode;
                 }
             }
             
-            // Normalize street name to abbreviated format
+            // LEGACY (042926) — no longer called by generateProjectCode under the new BLD_CustName_LOC# convention.
+            // Kept in place per BASE RULE (never delete). May be re-used if a future code format incorporates street name.
             function normalizeStreetName(streetName) {
                 const streetAbbreviations = {
                     'street': 'ST', 'avenue': 'AVE', 'boulevard': 'BLVD', 'drive': 'DR',
@@ -1086,9 +1079,10 @@
                 }
             });
             
-            // Project code generation event listeners
+            // Project code generation event listeners (042926: cust_name replaces customer as the trigger source)
             document.getElementById('builder').addEventListener('blur', generateProjectCode);
-            document.getElementById('customer').addEventListener('blur', generateProjectCode);
+            document.getElementById('cust_name').addEventListener('blur', generateProjectCode);
+            document.getElementById('cust_name').addEventListener('input', generateProjectCode);
             document.getElementById('job_address').addEventListener('blur', generateProjectCode);
             
             // Phone number formatting
