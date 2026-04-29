@@ -460,7 +460,7 @@
                     <div class="form-group">
                         <label for="project">Project Code</label>
                         <input type="text" id="project" name="project" placeholder="Auto-generated: BLD_CustName_LOC#" autocomplete="off">
-                        <div class="help-text">Auto-generated from builder, CustName, and address (street # or lot designator)</div>
+                        <div class="help-text">Auto-generated from builder, customer name (last name), and address (street # or lot designator). Editable if you need to override.</div>
                         <div id="projectCodePreview" class="project-code-preview" style="display: none;"></div>
                     </div>
                 </div>
@@ -491,25 +491,13 @@
             <!-- Customer Information -->
             <div class="section">
                 <h2><span class="section-icon">👤</span>Customer Information</h2>
+                <!-- Hidden legacy 'customer' field — auto-mirrored from customer_names so the Apps Script keeps receiving it -->
+                <input type="hidden" id="customer" name="customer" value="">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="customer">Customer/Project Name <span class="required">*</span></label>
-                        <input type="text" id="customer" name="customer" placeholder="e.g., Smith Residence" required autocomplete="organization">
-                        <div class="help-text">Primary project identifier name (display only — does NOT feed Project Code; CustName field below does)</div>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="customer_names">Customer Name(s)</label>
-                        <input type="text" id="customer_names" name="customer_names" placeholder="e.g., Mike & Amy Presley" autocomplete="name">
-                        <div class="help-text">Actual customer names (different from project name if applicable)</div>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="cust_name">CustName <span class="required">*</span></label>
-                        <input type="text" id="cust_name" name="cust_name" placeholder="e.g., Momin, JDavis, PaTodd, BartoshKalka" required maxlength="12" pattern="[A-Z][A-Za-z0-9]{0,11}" autocomplete="off">
-                        <div class="help-text">Short customer-code identifier (≤12 chars, CamelCase). 4-tier ladder: LastName → 1Init+LastName → 2Init+LastName → 1Init+LastName+#. Pre-resolved before the form (by skill or by you). Used in Job_Code and all filenames.</div>
+                        <label for="customer_names">Customer Name <span class="required">*</span></label>
+                        <input type="text" id="customer_names" name="customer_names" placeholder="e.g., Smith, Mike & Amy Presley, Bartosh-Kalka" required autocomplete="name">
+                        <div class="help-text">Customer's name. Last name auto-feeds the project code (CustName slot). Suffix words like "Residence", "Family" are stripped automatically.</div>
                     </div>
                 </div>
                 <div class="form-row two-col">
@@ -956,22 +944,52 @@
                 return firstWord.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
             }
             
+            // Derive CustName from a customer name string — Tier 1 only (LastName).
+            // 4-tier collision handling (JDavis vs KDavis, PaTodd vs PhTodd) is the skill's job, not the form's.
+            // The skill, when running, can directly overwrite the project field with a higher-tier value.
+            function deriveCustName(customerName) {
+                if (!customerName) return '';
+                // Strip common project-suffix words
+                const SUFFIX = /\s+(residences?|family|homes?|projects?|properties|estate|house|property)\s*$/i;
+                let s = customerName.trim().replace(SUFFIX, '').trim();
+                // Split on spaces, ampersand, "and" — pick the last segment (typically the surname)
+                const parts = s.split(/\s+|\s*&\s*|\s+and\s+/i).filter(p => p.trim().length > 0);
+                let lastSegment = parts.length > 0 ? parts[parts.length - 1] : s;
+                // If the last segment is an uppercase code already (e.g., skill wrote "JDavis"), preserve it as-is
+                // Otherwise, collapse hyphens, strip non-alpha, CamelCase
+                if (/^[A-Z][A-Za-z0-9]{0,11}$/.test(lastSegment)) {
+                    return lastSegment.substring(0, 12);
+                }
+                // Hyphenated last names: split on hyphen, CamelCase each segment, join (Bartosh-Kalka → BartoshKalka)
+                const hyphenSegments = lastSegment.split('-').map(seg => seg.replace(/[^A-Za-z]/g, '')).filter(s => s);
+                if (hyphenSegments.length === 0) return '';
+                const camel = hyphenSegments.map(seg => seg.charAt(0).toUpperCase() + seg.slice(1).toLowerCase()).join('');
+                return camel.substring(0, 12);
+            }
+
             // Project code generation — BLD_CustName_LOC# format (042926 customer-code convention)
+            // Auto-derives CustName from the Customer Name field (no manual typing).
             function generateProjectCode() {
                 console.log('generateProjectCode called');
                 const builder = document.getElementById('builder').value.trim();
-                const custName = document.getElementById('cust_name').value.trim();
+                const customerName = document.getElementById('customer_names').value.trim();
                 const jobAddress = document.getElementById('job_address').value.trim();
 
-                console.log('Values for project code:', { builder, custName, jobAddress });
+                // Mirror customer_names into the legacy 'customer' hidden field so Apps Script keeps receiving it
+                document.getElementById('customer').value = customerName;
 
-                if (!builder || !custName || !jobAddress) {
+                console.log('Values for project code:', { builder, customerName, jobAddress });
+
+                if (!builder || !customerName || !jobAddress) {
                     console.log('Missing required fields for project code generation');
                     return;
                 }
 
                 // BLD = Builder code (3 letters)
                 const builderCode = getBuilderCode(builder);
+
+                // CustName = derived from customer name (Tier 1: LastName, CamelCase, ≤12 chars)
+                const custName = deriveCustName(customerName);
 
                 // LOC# = street number (numeric) OR lot designator (D15, J5, LOT12) — no street name
                 let locNum = '';
@@ -1079,10 +1097,10 @@
                 }
             });
             
-            // Project code generation event listeners (042926: cust_name replaces customer as the trigger source)
+            // Project code generation event listeners (042926: customer_names auto-derives CustName)
             document.getElementById('builder').addEventListener('blur', generateProjectCode);
-            document.getElementById('cust_name').addEventListener('blur', generateProjectCode);
-            document.getElementById('cust_name').addEventListener('input', generateProjectCode);
+            document.getElementById('customer_names').addEventListener('blur', generateProjectCode);
+            document.getElementById('customer_names').addEventListener('input', generateProjectCode);
             document.getElementById('job_address').addEventListener('blur', generateProjectCode);
             
             // Phone number formatting
@@ -1136,7 +1154,7 @@
                     { id: 'date', name: 'Date' },
                     { id: 'phase', name: 'Phase' },
                     { id: 'deal_stage', name: 'Deal Stage' },
-                    { id: 'customer', name: 'Customer/Project Name' },
+                    { id: 'customer_names', name: 'Customer Name' },
                     { id: 'job_address', name: 'Job Address' },
                     { id: 'city', name: 'City' },
                     { id: 'state', name: 'State' },
